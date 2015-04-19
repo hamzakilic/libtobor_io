@@ -14,6 +14,7 @@ typedef em_uint32 (*gpio_write_func)(em_uint8 ,em_uint8);
 typedef em_uint32 (*gpio_pull_func)(em_uint8,em_uint8);
 typedef em_uint32 (*gpio_set_event_func)(em_uint8 ,em_uint8,em_uint8);
 typedef em_uint32 (*gpio_read_event_func)(em_uint8 ,em_uint8 * );
+typedef  em_uint64 (*current_time_func)(em_uint64 *);
 
 typedef struct {
 
@@ -24,6 +25,7 @@ typedef struct {
     gpio_pull_func gpio_pull;
     gpio_set_event_func gpio_set_event;
     gpio_read_event_func gpio_read_event;
+    current_time_func current_time;
 
 
 }em_board;
@@ -40,6 +42,7 @@ em_uint32 em_io_initialize(em_uint32 system){
     current_board.gpio_pull=em_raspi_gpio_pull;
     current_board.gpio_set_event=em_raspi_set_event;
     current_board.gpio_read_event=em_raspi_read_event;
+    current_board.current_time=em_raspi_current_time;
 
     return current_board.initialize(system);
 
@@ -66,6 +69,9 @@ em_uint32 em_io_gpio_set_event(em_uint8 number,em_uint8 event,em_uint8 enable_or
 }
 em_uint32 em_io_gpio_read_event(em_uint8 number,em_uint8* val){
 	return current_board.gpio_read_event(number,val);
+}
+em_uint64 em_io_current_time(em_uint64 *time_value){
+	return current_board.current_time(time_value);
 }
 
 

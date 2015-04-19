@@ -214,12 +214,24 @@ em_uint32 test_events(){
 			return 1;
 }
 
+int test_time(){
+	  if(em_io_initialize(0))
+					  return 1;
+	  em_uint64 time=0;
+	  int counter=0;
+	  for(counter=0;counter <10 ;++counter){
+		  em_io_current_time(&time);
+		  fprintf(stdout,"time is:%lld microsecond\n ",time);
+		  em_io_delay_microseconds(1*100000);
+	  }
+}
+
 
 
 int main(void) {
 
 
-test_events();
+test_time();
 
 
   return 0;

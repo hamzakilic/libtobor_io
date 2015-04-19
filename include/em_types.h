@@ -18,8 +18,8 @@ typedef unsigned short em_uint16;
 typedef signed int em_int32;
 typedef unsigned int em_uint32;
 
-typedef signed long em_int64;
-typedef unsigned long em_uint64;
+typedef signed long long em_int64;
+typedef unsigned long long em_uint64;
 
 typedef float em_float32;
 typedef double em_double64;

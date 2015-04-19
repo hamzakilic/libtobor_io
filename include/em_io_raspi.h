@@ -35,6 +35,7 @@ em_uint32 em_raspi_gpio_write(em_uint8 number,em_uint8 val);
 em_uint32 em_raspi_gpio_pull(em_uint8 number,em_uint8 mode);
 em_uint32 em_raspi_set_event(em_uint8 number,em_uint8 event,em_uint8 enable_or_disable);
 em_uint32 em_raspi_read_event(em_uint8 number,em_uint8* val);
+em_uint64 em_raspi_current_time(em_uint64 *time_value);
 
 
 

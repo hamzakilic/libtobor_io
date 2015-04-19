@@ -10,12 +10,15 @@
 
 
 #define PERIPHERALS_BASE_PHYSICAL  0x20000000
-#define PERIPHERALS_REGISTER_PHYSICAL 0x200000
+#define PERIPHERALS_GPIO_PHYSICAL 0x200000
+#define PERIPHERALS_TIMER_PHYSICAL 0x3000
 
 static em_uint32 mem_fd;
 volatile em_uint32 * gpio;
+volatile em_uint32 * timer;
 
-#define REGISTERS_SIZE  (0x7E2000B0-0x7E200000)
+#define GPIO_REGISTERS_SIZE  (0x7E2000B0-0x7E200000)
+#define TIMER_REGISTERS_SIZE (7*sizeof(em_uint32))
 
 static em_uint8 pin_maps[255] = { 2, 3, 4, 14, 15, 17, 18, 27, 22, 23, 24, 10,
 		9, 25, 11, 8, 7 };
@@ -62,24 +65,24 @@ em_uint32 em_raspi_initialize(em_uint32 system) {
 	}
 	//em_int32 sys_page_size= sysconf(_SC_PAGE_SIZE);
 	//em_log(EM_LOG_INFO,0,"page size is %d \n",sys_page_size);
-	gpio = (volatile em_uint32 *) mmap(NULL, REGISTERS_SIZE,
-	PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd,
-			(PERIPHERALS_BASE_PHYSICAL + PERIPHERALS_REGISTER_PHYSICAL));
+	gpio = (volatile em_uint32 *) mmap(NULL, GPIO_REGISTERS_SIZE,PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd,(PERIPHERALS_BASE_PHYSICAL + PERIPHERALS_GPIO_PHYSICAL));
+	timer = (volatile em_uint32 *) mmap(NULL, TIMER_REGISTERS_SIZE,PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd,(PERIPHERALS_BASE_PHYSICAL + PERIPHERALS_TIMER_PHYSICAL));
+
+
 	close(mem_fd);
-	if (gpio == MAP_FAILED) {
+	if (gpio == MAP_FAILED ||  timer == MAP_FAILED) {
 		em_log(EM_LOG_FATAL, errno, "map to ram failed\n");
 		return EM_ERROR_CANNOT_OPEN;
 	}
 
-	em_log(EM_LOG_INFO, 0, "memory map completed at %d at size %d\n",
-			(PERIPHERALS_BASE_PHYSICAL + PERIPHERALS_REGISTER_PHYSICAL),
-			REGISTERS_SIZE);
+
+
 
 	return EM_SUCCESS;
 
 }
 
-#define PERIPHERALS_FUNCTION_SELECT_PHYSICAL (0x00/sizeof(em_uint32))
+#define PERIPHERALS_GPIO_FUNCTION_SELECT_PHYSICAL (0x00/sizeof(em_uint32))
 #define PERIPHERALS_GPIO_OUTPUT_PHYSICAL (0x1C/sizeof(em_uint32))
 #define PERIPHERALS_GPIO_CLEAR_PHYSICAL (0x28/sizeof(em_uint32))
 #define PERIPHERALS_GPIO_LEVEL_PHYSICAL (0x34/sizeof(em_uint32))
@@ -99,7 +102,7 @@ em_uint32 em_raspi_gpio_mode(em_uint8 number, em_uint8 mode) {
 #endif
 
 	number = pin_maps[number];
-	volatile em_uint32 *address=gpio + PERIPHERALS_FUNCTION_SELECT_PHYSICAL+ PIN_MODE_POSITION(number);
+	volatile em_uint32 *address=gpio + PERIPHERALS_GPIO_FUNCTION_SELECT_PHYSICAL+ PIN_MODE_POSITION(number);
 	if (mode & EM_DIRECTION_OUT) {
 		em_uint32 address_value=arm_read(address);
 		arm_write(address, address_value & ~(0x0000007<< PIN_MODE_SHIFT(number)));
@@ -314,6 +317,25 @@ em_uint32 em_raspi_read_event(em_uint8 number,em_uint8* val){
 
 
 		return EM_SUCCESS;
+}
+
+
+#define PERIPHERALS_TIMER_COUNTER_LOW_PHYSICAL (0x4/sizeof(em_uint32))
+#define PERIPHERALS_TIMER_COUNTER_HIGH_PHYSICAL (0x8/sizeof(em_uint32))
+
+em_uint64 em_raspi_current_time(em_uint64 *time_value){
+	volatile em_uint32 * address_low =(timer + PERIPHERALS_TIMER_COUNTER_LOW_PHYSICAL);
+	volatile em_uint32 * address_high =(timer +  PERIPHERALS_TIMER_COUNTER_HIGH_PHYSICAL);
+	em_uint32 low_value=arm_read(address_low);
+	em_uint32 high_value=arm_read(address_high);
+	em_uint64 temp=high_value;
+	temp = temp << 32;
+	temp +=low_value;
+	*time_value=temp;
+
+
+	return EM_SUCCESS;
+
 }
 
 

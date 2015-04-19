@@ -36,6 +36,7 @@ extern em_uint32 em_io_gpio_write(em_uint8 number,em_uint8 val);
 extern em_uint32 em_io_gpio_pull(em_uint8 number,em_uint8 mode);
 extern em_uint32 em_io_gpio_set_event(em_uint8 number,em_uint8 event,em_uint8 enable_ordisable);
 extern em_uint32 em_io_gpio_read_event(em_uint8 number,em_uint8* val);
+extern em_uint64 em_io_current_time(em_uint64 *time_value);
 
 
 
