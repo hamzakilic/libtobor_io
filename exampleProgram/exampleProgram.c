@@ -24,7 +24,7 @@ int test_all_pins(){
 	int i=0;
 	for(i=0;i<17;++i)
 	{
-		 if(em_io_gpio_mode(i,EM_DIRECTION_OUT))
+		 if(em_io_gpio_mode(i,EM_MODE_GPIO_OUT))
 			  return 1;
 		 if(em_io_gpio_write(i,EM_GPIO_LOW))
 		 		   return 1;
@@ -54,12 +54,12 @@ int test_read_pins(){
 		int i=0;
 		for(i=0;i<17;++i)
 		{
-			 if(em_io_gpio_mode(i,EM_DIRECTION_IN))
+			 if(em_io_gpio_mode(i,EM_MODE_GPIO_IN))
 				  return 1;
 
 
 		}
-		em_io_gpio_mode(1,EM_DIRECTION_OUT);
+		em_io_gpio_mode(1,EM_MODE_GPIO_OUT);
 		em_io_gpio_write(1,EM_GPIO_HIGH);
 		em_uint8 read_val;
 		for(i=0;i<100000;++i)
@@ -82,7 +82,7 @@ int test_pull_up_down(){
 				  return 1;
 			int i=0;
 
-			if(em_io_gpio_mode(EM_GPIO_5,EM_DIRECTION_IN))
+			if(em_io_gpio_mode(EM_GPIO_5,EM_MODE_GPIO_IN))
 					  return 1;
 
 
@@ -113,7 +113,7 @@ em_uint32 test_all_up_read(){
 					  return 1;
 				int i=0;
              for(i=0;i<17;++i)
-				if(em_io_gpio_mode(i,EM_DIRECTION_IN))
+				if(em_io_gpio_mode(i,EM_MODE_GPIO_IN))
 						  return 1;
              em_uint8 val;
              for(i=0;i<17;++i)
@@ -175,13 +175,13 @@ em_uint32 test_events(){
 
 			for(i=0;i<17;++i)
 			{
-				 if(em_io_gpio_mode(i,EM_DIRECTION_IN))
+				 if(em_io_gpio_mode(i,EM_MODE_GPIO_IN))
 					  return 1;
 				 em_io_gpio_pull(i,EM_PULL_DOWN);
 
 
 			}
-			em_io_gpio_mode(EM_GPIO_0,EM_DIRECTION_OUT);
+			em_io_gpio_mode(EM_GPIO_0,EM_MODE_GPIO_OUT);
 			em_io_gpio_write(EM_GPIO_0,EM_GPIO_HIGH);
 			fprintf(stdout,"executing set event\n");
 			for(i=0;i<17;++i)
@@ -226,12 +226,60 @@ int test_time(){
 	  }
 }
 
+int test_mini_uart(){
+	if(em_io_initialize(0))
+						  return 1;
+	//em_raspi_uart_extra_status();
+		int i=270;
+
+		em_io_mini_uart_start(EM_UART_RECEIVE_ENABLE| EM_UART_TRANSMIT_ENABLE|EM_UART_DATA_8BIT_ENABLE,9600);
+		em_io_delay_loops(100);
+		em_log(EM_LOG_INFO,0,"******\n");
+		//em_raspi_uart_extra_status();
+	    const char * value="hamza calisti";
+
+		/*em_uint8 read;
+	    for(i=0;i<strlen(value);++i){
+
+	    	if(em_raspi_uart_read(&read)==EM_SUCCESS){
+	    		em_log(EM_LOG_INFO,0,"read value is %u\n",read);
+	    	}
+
+	    	if(em_raspi_uart_write(value[i])){
+	    		--i;
+	    		em_log(EM_LOG_ERROR,0,"yazilamadi\n");
+	    	}
+
+
+	    }*/
+
+	    em_uint8 read=0;
+	        while(1){
+
+	        	if(read){
+	        		if(em_io_mini_uart_write(read)==EM_SUCCESS)  	   read=0;
+
+	        	}else
+	        	if(em_io_mini_uart_read(&read)==EM_SUCCESS)
+
+	        	if(em_io_mini_uart_write(read)==EM_SUCCESS){
+	        	   read=0;
+	        	}
+
+
+	        }
+
+
+	    em_raspi_uart_extra_status();
+		return EM_SUCCESS;
+
+}
 
 
 int main(void) {
 
 
-test_time();
+test_mini_uart();
 
 
   return 0;

@@ -35,7 +35,12 @@ em_uint32 em_raspi_gpio_write(em_uint8 number,em_uint8 val);
 em_uint32 em_raspi_gpio_pull(em_uint8 number,em_uint8 mode);
 em_uint32 em_raspi_set_event(em_uint8 number,em_uint8 event,em_uint8 enable_or_disable);
 em_uint32 em_raspi_read_event(em_uint8 number,em_uint8* val);
-em_uint64 em_raspi_current_time(em_uint64 *time_value);
+em_uint32 em_raspi_current_time(em_uint64 *time_value);
+em_uint32 em_raspi_busy_wait(em_uint64  micro_seconds);
+em_uint32 em_raspi_mini_uart_start(em_uint32 options,em_uint32 baudrate);
+em_uint32 em_raspi_mini_uart_stop();
+em_uint32 em_raspi_mini_uart_write(em_uint8 data);
+em_uint32 em_raspi_mini_uart_read(em_uint8 *data);
 
 
 

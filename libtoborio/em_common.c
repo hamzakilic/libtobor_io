@@ -21,5 +21,14 @@ void em_io_delay_microseconds (em_uint32 micro_seconds)
 
 }
 
+inline void em_io_delay_loops(em_uint32 count){
+	asm volatile("__delay_%=: subs %[count], %[count], #1; bne __delay_%=\n"
+			 : : [count]"r"(count) : "cc");
+}
+
+
+endianness o32_host_order={{0,1,2,3}};
+
+
 
 

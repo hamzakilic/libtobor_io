@@ -14,7 +14,12 @@ typedef em_uint32 (*gpio_write_func)(em_uint8 ,em_uint8);
 typedef em_uint32 (*gpio_pull_func)(em_uint8,em_uint8);
 typedef em_uint32 (*gpio_set_event_func)(em_uint8 ,em_uint8,em_uint8);
 typedef em_uint32 (*gpio_read_event_func)(em_uint8 ,em_uint8 * );
-typedef  em_uint64 (*current_time_func)(em_uint64 *);
+typedef em_uint32 (*current_time_func)(em_uint64 *);
+typedef em_uint32  (*busy_wait_func)(em_uint64);
+typedef em_uint32 (*mini_uart_start_func)(em_uint32 ,em_uint32 );
+typedef em_uint32 (*mini_uart_stop_func)();
+typedef em_uint32 (*mini_uart_write_func)(em_uint8);
+typedef em_uint32 (*mini_uart_read_func)(em_uint8 *);
 
 typedef struct {
 
@@ -26,6 +31,11 @@ typedef struct {
     gpio_set_event_func gpio_set_event;
     gpio_read_event_func gpio_read_event;
     current_time_func current_time;
+    busy_wait_func busy_wait;
+    mini_uart_start_func mini_uart_start;
+    mini_uart_stop_func mini_uart_stop;
+    mini_uart_write_func mini_uart_write;
+    mini_uart_read_func mini_uart_read;
 
 
 }em_board;
@@ -43,7 +53,11 @@ em_uint32 em_io_initialize(em_uint32 system){
     current_board.gpio_set_event=em_raspi_set_event;
     current_board.gpio_read_event=em_raspi_read_event;
     current_board.current_time=em_raspi_current_time;
-
+    current_board.busy_wait=em_raspi_busy_wait;
+    current_board.mini_uart_start=em_raspi_mini_uart_start;
+    current_board.mini_uart_stop=em_raspi_mini_uart_stop;
+    current_board.mini_uart_read=em_raspi_mini_uart_read;
+    current_board.mini_uart_write=em_raspi_mini_uart_write;
     return current_board.initialize(system);
 
 }
@@ -70,8 +84,24 @@ em_uint32 em_io_gpio_set_event(em_uint8 number,em_uint8 event,em_uint8 enable_or
 em_uint32 em_io_gpio_read_event(em_uint8 number,em_uint8* val){
 	return current_board.gpio_read_event(number,val);
 }
-em_uint64 em_io_current_time(em_uint64 *time_value){
+em_uint32 em_io_current_time(em_uint64 *time_value){
 	return current_board.current_time(time_value);
 }
+em_uint32 em_io_busy_wait(em_uint64  micro_seconds){
+return current_board.busy_wait(micro_seconds);
+}
+em_uint32 em_io_mini_uart_start(em_uint32 options,em_uint32 baudrate){
+	return current_board.mini_uart_start(options,baudrate);
+}
+em_uint32 em_io_mini_uart_stop(){
+	return current_board.mini_uart_stop();
 
+}
+em_uint32 em_io_mini_uart_write(em_uint8 data){
+	return current_board.mini_uart_write(data);
+
+}
+em_uint32 em_io_mini_uart_read(em_uint8 *data){
+	return current_board.mini_uart_read(data);
+}
 
