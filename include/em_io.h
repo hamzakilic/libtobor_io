@@ -1,8 +1,9 @@
-/*
- * emio.h
+/*بِسْــــــــــــــــــــــمِ اﷲِارَّحْمَنِ ارَّحِيم
+ *
+ *  A user space driver library for raspberry pi
  *
  *  Created on: Apr 8, 2015
- *      Author: root
+ *  Author: Hamza Kılıç
  */
 
 #ifndef EM_IO_H_
