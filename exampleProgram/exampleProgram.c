@@ -232,7 +232,7 @@ int test_mini_uart(){
 	//em_raspi_uart_extra_status();
 		int i=270;
 
-		em_io_mini_uart_start(EM_UART_RECEIVE_ENABLE| EM_UART_TRANSMIT_ENABLE|EM_UART_DATA_8BIT_ENABLE,9600);
+		em_io_mini_uart_start(EM_MINI_UART_RECEIVE_ENABLE| EM_MINI_UART_TRANSMIT_ENABLE|EM_MINI_UART_DATA_8BIT_ENABLE,115200,250);
 		em_io_delay_loops(100);
 		em_log(EM_LOG_INFO,0,"******\n");
 		//em_raspi_uart_extra_status();
@@ -276,10 +276,37 @@ int test_mini_uart(){
 }
 
 
+
+
+int test_uart(){
+	if(em_io_initialize(0))
+						  return 1;
+	em_raspi_uart_start(EM_UART_RECEIVE_ENABLE|EM_UART_TRANSMIT_ENABLE| EM_UART_DATA_8BIT_ENABLE| EM_UART_PARITY_ENABLE|EM_UART_FIF0_ENABLE ,9600);
+
+		int i=0;
+		for(i=0;i<10;++i){
+			em_raspi_uart_write('a');
+		}
+		em_uint8 read=0;
+		while(1){
+
+			if(em_raspi_uart_read(&read)==EM_SUCCESS){
+				em_raspi_uart_write(read);
+
+			}
+		}
+
+		return EM_SUCCESS;
+
+}
+
+
+
+
 int main(void) {
 
 
-test_mini_uart();
+test_uart();
 
 
   return 0;

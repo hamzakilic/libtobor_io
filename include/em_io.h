@@ -39,10 +39,16 @@ extern em_uint32 em_io_gpio_set_event(em_uint8 number,em_uint8 event,em_uint8 en
 extern em_uint32 em_io_gpio_read_event(em_uint8 number,em_uint8* val);
 extern em_uint32 em_io_current_time(em_uint64 *time_value);
 extern em_uint32 em_io_busy_wait(em_uint64  micro_seconds);
-extern em_uint32 em_io_mini_uart_start(em_uint32 options,em_uint32 baudrate);
+extern em_uint32 em_io_mini_uart_start(em_uint32 options,em_uint32 baudrate,em_uint32 clock_frequency_mhz);
 extern em_uint32 em_io_mini_uart_stop();
 extern em_uint32 em_io_mini_uart_write(em_uint8 data);
 extern em_uint32 em_io_mini_uart_read(em_uint8 *data);
+extern em_uint32 em_io_uart_start(em_uint32 options,em_uint32 baudrate);
+extern em_uint32 em_io_uart_stop();
+extern em_uint32 em_io_uart_write(em_uint8 data);
+extern em_uint32 em_io_uart_read(em_uint8 *data);
+
+extern em_uint32 em_io_test();
 
 
 

@@ -13,15 +13,19 @@
 #define PERIPHERALS_GPIO_PHYSICAL 0x200000
 #define PERIPHERALS_TIMER_PHYSICAL 0x3000
 #define PERIPHERALS_MINI_UART_PHYSICAL 0x215000
+#define PERIPHERALS_UART_PHYSICAL 0x201000
 
 static em_uint32 mem_fd;
 volatile em_uint32 * gpio;
 volatile em_uint32 * timer;
 volatile em_uint32 *mini_uart;
+volatile em_uint32 *uart;
 
-#define GPIO_REGISTERS_SIZE  (0x7E2000B0-0x7E200000)
-#define TIMER_REGISTERS_SIZE (7*sizeof(em_uint32))
-#define MINI_UART_REGISTERS_SIZE  (0xD4/sizeof(em_uint32))
+
+#define GPIO_REGISTERS_SIZE  (0xB0)
+#define TIMER_REGISTERS_SIZE (0x18)
+#define MINI_UART_REGISTERS_SIZE  (0xD4)
+#define UART_REGISTERS_SIZE  (0x8C)
 
 static em_uint8 pin_maps[255] = { 2, 3, 4, 14, 15, 17, 18, 27, 22, 23, 24, 10,
 		9, 25, 11, 8, 7 };
@@ -71,11 +75,12 @@ em_uint32 em_raspi_initialize(em_uint32 system) {
 	gpio = (volatile em_uint32 *) mmap(NULL, GPIO_REGISTERS_SIZE,PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd,(PERIPHERALS_BASE_PHYSICAL + PERIPHERALS_GPIO_PHYSICAL));
 	timer = (volatile em_uint32 *) mmap(NULL, TIMER_REGISTERS_SIZE,PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd,(PERIPHERALS_BASE_PHYSICAL + PERIPHERALS_TIMER_PHYSICAL));
 	mini_uart = (volatile em_uint32 *) mmap(NULL, MINI_UART_REGISTERS_SIZE,PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd,(PERIPHERALS_BASE_PHYSICAL + PERIPHERALS_MINI_UART_PHYSICAL));
+	uart = (volatile em_uint32 *) mmap(NULL, UART_REGISTERS_SIZE,PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd,(PERIPHERALS_BASE_PHYSICAL + PERIPHERALS_UART_PHYSICAL));
 
 
 	close(mem_fd);
-	if (gpio == MAP_FAILED ||  timer == MAP_FAILED || mini_uart==MAP_FAILED) {
-		em_log(EM_LOG_FATAL, errno, "map to ram or timer or mini_uart failed\n");
+	if (gpio == MAP_FAILED ||  timer == MAP_FAILED || mini_uart==MAP_FAILED || uart==MAP_FAILED) {
+		em_log(EM_LOG_FATAL, errno, "map to ram ,gpio or timer or mini_uart or uart failed\n");
 		return EM_ERROR_CANNOT_OPEN;
 	}
 
@@ -478,7 +483,7 @@ static em_uint32 em_raspi_mini_uart_extra_status(){
 
 }
 
-em_uint32 em_raspi_mini_uart_start(em_uint32 options,em_uint32 baudrate){
+em_uint32 em_raspi_mini_uart_start(em_uint32 options,em_uint32 baudrate,em_uint32 clock_frequency_mhz){
 
 	volatile em_uint32 * address_enables=mini_uart+PERIPHERALS_MINI_UART_ENABLES_PHYSICAL;
 	volatile em_uint32 * address_extra_control=mini_uart+PERIPHERALS_MINI_UART_EXTRA_CONTROL_PHYSICAL;
@@ -505,10 +510,10 @@ em_uint32 em_raspi_mini_uart_start(em_uint32 options,em_uint32 baudrate){
 
 						      em_uint32 val_line_control=0;
 
-						        if(options & EM_UART_DATA_7BIT_ENABLE){
+						        if(options & EM_MINI_UART_DATA_7BIT_ENABLE){
 						        	val_line_control =0x0;
 						        }
-						        if(options & EM_UART_DATA_8BIT_ENABLE){
+						        if(options & EM_MINI_UART_DATA_8BIT_ENABLE){
 						                	val_line_control=0x3;
 
 						                }
@@ -517,12 +522,12 @@ em_uint32 em_raspi_mini_uart_start(em_uint32 options,em_uint32 baudrate){
 
 
         volatile em_uint32 * address_baudrate=mini_uart+PERIPHERALS_MINI_UART_BAUDRATE_PHYSICAL;
-        arm_write(address_baudrate, (250000000/(8*baudrate))-1);
+        arm_write(address_baudrate, (clock_frequency_mhz*1000000/(8*baudrate))-1);
 
 
 
 
-        if(options & EM_UART_RECEIVE_ENABLE){
+        if(options & EM_MINI_UART_RECEIVE_ENABLE){
         	em_uint32 val_extra_control=arm_read(address_extra_control);
                	arm_write(address_extra_control, MAKE_BIT_ONE(val_extra_control,0));
         }
@@ -532,7 +537,7 @@ em_uint32 em_raspi_mini_uart_start(em_uint32 options,em_uint32 baudrate){
 
                }
 
-               if(options & EM_UART_TRANSMIT_ENABLE){
+               if(options & EM_MINI_UART_TRANSMIT_ENABLE){
             	   em_uint32 val_extra_control=arm_read(address_extra_control);
                        	arm_write(address_extra_control, MAKE_BIT_ONE(val_extra_control,1));
                }
@@ -603,6 +608,197 @@ em_uint32 em_raspi_mini_uart_read(em_uint8 *data){
 	return EM_SUCCESS;
 			}
 			return EM_ERROR_IO_READ;
+}
+
+
+
+#define PERIPHERALS_UART_DATA_PHYSICAL (0x0)
+#define PERIPHERALS_UART_RECEIVE_STATUS_PHYSICAL (0x4/(sizeof(em_uint32)))
+#define PERIPHERALS_UART_FLAG_PHYSICAL (0x18/(sizeof(em_uint32)))
+#define PERIPHERALS_UART_INTEGER_BAUDRATE_PHYSICAL (0x24/(sizeof(em_uint32)))
+#define PERIPHERALS_UART_FRACTIONAL_BAUDRATE_PHYSICAL (0x28/(sizeof(em_uint32)))
+#define PERIPHERALS_UART_LINE_CONTROL_PHYSICAL (0x2C/(sizeof(em_uint32)))
+#define PERIPHERALS_UART_CONTROL_PHYSICAL (0x30/(sizeof(em_uint32)))
+#define PERIPHERALS_UART_INTERRUPT_FIFO_LEVEL_PHYSICAL (0x34/(sizeof(em_uint32)))
+#define PERIPHERALS_UART_INTTERRUPT_MASK_PHYSICAL (0x38/(sizeof(em_uint32)))
+#define PERIPHERALS_UART_INTERRUPT_RAW_STATUS_PHYSICAL (0x3C/(sizeof(em_uint32)))
+#define PERIPHERALS_UART_INTERRUPT_MASK_STATUS_PHYSICAL (0x40/(sizeof(em_uint32)))
+#define PERIPHERALS_UART_INTERRUPT_CLEAR_PHYSICAL (0x44/(sizeof(em_uint32)))
+#define PERIPHERALS_UART_DMA_CONTROL_PHYSICAL (0x48/(sizeof(em_uint32)))
+
+
+
+
+
+
+em_uint32 em_raspi_uart_stop(){
+	    volatile em_uint32 * address_control=uart+PERIPHERALS_UART_CONTROL_PHYSICAL;
+	    em_uint32 val_control=arm_read(address_control);
+		arm_write(address_control,MAKE_BIT_ZERO(val_control,0));//disable uart
+
+		em_io_delay_loops(150);//wait for finish everything
+
+		volatile em_uint32 *address_line_control=uart+PERIPHERALS_UART_LINE_CONTROL_PHYSICAL;
+		em_uint32 val_line=arm_read(address_control);
+		arm_write(address_line_control,MAKE_BIT_ZERO(val_line,4));//clear fifos
+}
+
+em_uint32 em_raspi_uart_start(em_uint32 options,em_uint32 baudrate){
+
+	em_raspi_mini_uart_stop();
+	volatile em_uint32 *address_data=uart+PERIPHERALS_UART_DATA_PHYSICAL;
+
+    volatile em_uint32 *address_receive_status=uart+PERIPHERALS_UART_RECEIVE_STATUS_PHYSICAL;
+    volatile em_uint32 *address_flag=uart+PERIPHERALS_UART_FLAG_PHYSICAL;
+   	arm_write(address_flag,0x90);
+   	 volatile em_uint32 *address_integer_baud=uart+PERIPHERALS_UART_INTEGER_BAUDRATE_PHYSICAL;
+   	 volatile em_uint32 *address_fractional_baud=uart+PERIPHERALS_UART_FRACTIONAL_BAUDRATE_PHYSICAL;
+   	 volatile em_uint32 *address_interrupt_clear=uart+PERIPHERALS_UART_INTERRUPT_CLEAR_PHYSICAL;
+   	 arm_write(address_interrupt_clear,0);//clear interrupt mask status we dont need them
+   	 volatile em_uint32 *address_interrupt_fifo_level=uart+PERIPHERALS_UART_INTERRUPT_FIFO_LEVEL_PHYSICAL;
+   	 //	arm_write(address_interrupt_fifo_level,0);//clear interrupt fifo level we dont need them
+
+	volatile em_uint32 *address_interrupt_mask=uart+PERIPHERALS_UART_INTERRUPT_MASK_STATUS_PHYSICAL;
+	arm_write(address_interrupt_mask,0);//clear interrupt mask we dont need them
+
+
+	volatile em_uint32 *address_interrupt_raw_status=uart+PERIPHERALS_UART_INTERRUPT_RAW_STATUS_PHYSICAL;
+	arm_write(address_interrupt_raw_status,0);//clear interrupt raw status we dont need them
+
+
+
+	em_io_gpio_mode(EM_GPIO_3,EM_MODE_GPIO_FUNC0);
+	em_io_gpio_pull(EM_GPIO_3,EM_PULL_OFF);
+
+	em_io_gpio_mode(EM_GPIO_4,EM_MODE_GPIO_FUNC0);
+	em_io_gpio_pull(EM_GPIO_4,EM_PULL_OFF);
+
+
+
+     em_uint32 val_line_control=0;
+     if(options & EM_UART_PARITY_ENABLE)
+    	 val_line_control |= 0x1<<1;
+     if(options & EM_UART_PARITY_EVEN_ENABLE)
+    	 val_line_control |= 0x1<<2;
+     if(options & EM_UART_TWO_STOPBITS_ENABLE)
+         val_line_control |= 0x1<<3;
+     if(options & EM_UART_FIF0_ENABLE)
+         val_line_control |= 0x1<<4;
+
+     if(options & EM_UART_DATA_5BIT_ENABLE)
+         val_line_control |= 0x00;
+     else if(options & EM_UART_DATA_6BIT_ENABLE)
+     	 val_line_control |= 0x1<<5;
+     else
+     if(options & EM_UART_DATA_7BIT_ENABLE)
+          val_line_control |= 0x2<<5;
+     else if(options & EM_UART_DATA_8BIT_ENABLE)
+      	 val_line_control |= 0x3<<5;
+
+     if(options & EM_UART_SEND_BREAK_ENABLE)
+         val_line_control |= 0x1;
+
+     volatile em_uint32 *address_line_control=uart+PERIPHERALS_UART_LINE_CONTROL_PHYSICAL;
+
+     		arm_write(address_line_control,val_line_control);
+
+    em_double64 float_baud=3000000.0/(16*baudrate);
+    em_uint32 integer_baud=float_baud;
+    em_uint32 fractional_baud=((float_baud-integer_baud*1.0)*64)+0.5f;
+
+
+    //em_log(EM_LOG_INFO,0,"integer rate %u,%u\n", arm_read(address_integer_baud),integer_baud);
+    arm_write(address_integer_baud,integer_baud);
+
+    //em_log(EM_LOG_INFO,0,"fractional rate %u,%u\n",arm_read(address_fractional_baud),fractional_baud);
+      arm_write(address_fractional_baud,fractional_baud);
+
+        em_io_delay_loops(150);
+
+        volatile em_uint32 * address_control=uart+PERIPHERALS_UART_CONTROL_PHYSICAL;
+     		 em_uint32 val_control=arm_read(address_control);
+     		val_control |= 0x1;
+     		          if(options & EM_UART_TRANSMIT_ENABLE)
+     		         	 val_control |= 0x1<<8;
+     		          if(options & EM_UART_RECEIVE_ENABLE)
+     		         	 val_control |= 0x1<<9;
+
+
+     		          arm_write(address_control,val_control);
+
+
+	return EM_SUCCESS;
+}
+em_uint32 em_raspi_uart_read_available(){
+	 volatile em_uint32 *address_flag=uart+PERIPHERALS_UART_FLAG_PHYSICAL;
+	 em_uint32 val_flag=arm_read(address_flag);
+
+	 if(val_flag & (0x1<<4))
+		 return EM_ERROR_IO_READ;
+	 return EM_SUCCESS;
+
+
+}
+
+em_uint32 em_raspi_uart_read(em_uint8 *val){
+    if(em_raspi_uart_read_available()==EM_SUCCESS)
+    {
+    volatile em_uint32 *address_data=uart+PERIPHERALS_UART_DATA_PHYSICAL;
+    	 em_uint32 temp_val=arm_read(address_data);
+    	 *val=temp_val;
+
+    	 temp_val = (temp_val >> 8);
+
+         if(temp_val)
+        	 return EM_ERROR_IO_READ;
+
+   return EM_SUCCESS;
+    }return EM_ERROR_IO_READ;
+
+}
+
+em_uint32 em_raspi_uart_write_available(){
+	 volatile em_uint32 *address_flag=uart+PERIPHERALS_UART_FLAG_PHYSICAL;
+	 em_uint32 val_flag=arm_read(address_flag);
+
+	 if(val_flag & (0x1<<7))
+		 return EM_SUCCESS;
+	 return EM_ERROR_IO_WRITE;
+
+
+}
+
+em_uint32 em_raspi_uart_write(em_uint8 val){
+    if(em_raspi_uart_write_available()==EM_SUCCESS)
+    {
+
+    volatile em_uint32 *address_data=uart+PERIPHERALS_UART_DATA_PHYSICAL;
+    arm_write(address_data,val);
+      return EM_SUCCESS;
+    }
+    return EM_ERROR_IO_WRITE;
+
+}
+
+
+
+em_uint32 em_raspi_test(){
+	em_raspi_uart_start(EM_UART_RECEIVE_ENABLE|EM_UART_TRANSMIT_ENABLE| EM_UART_DATA_8BIT_ENABLE| EM_UART_PARITY_ENABLE|EM_UART_FIF0_ENABLE ,9600);
+	const char *test="hamza";
+	int i=0;
+	for(i=0;i<10;++i){
+		em_raspi_uart_write('a');
+	}
+	em_uint8 read=0;
+	while(1){
+
+		if(em_raspi_uart_read(&read)==EM_SUCCESS){
+			em_raspi_uart_write(read);
+
+		}
+	}
+
+	return EM_SUCCESS;
 }
 
 
