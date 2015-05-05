@@ -47,6 +47,8 @@ extern em_uint32 em_io_uart_start(em_uint32 options,em_uint32 baudrate);
 extern em_uint32 em_io_uart_stop();
 extern em_uint32 em_io_uart_write(em_uint8 data);
 extern em_uint32 em_io_uart_read(em_uint8 *data);
+extern em_uint32 em_io_pwm_start(em_uint32 channel, em_uint32 options,em_uint32 range,em_uint16 divi,em_uint16 divif);
+extern em_uint32 em_io_pwm_write(em_uint32 channel,em_uint32 data);
 
 extern em_uint32 em_io_test();
 

@@ -45,6 +45,9 @@ em_uint32 em_raspi_uart_start(em_uint32 options,em_uint32 baudrate);
 em_uint32 em_raspi_uart_stop();
 em_uint32 em_raspi_uart_write(em_uint8 data);
 em_uint32 em_raspi_uart_read(em_uint8 *data);
+em_uint32 em_raspi_pwm_start(em_uint32 channel, em_uint32 options,em_uint32 range,em_uint16 divi,em_uint16 divif);
+em_uint32 em_raspi_pwm_write(em_uint32 channel,em_uint32 data);
+
 em_uint32 em_raspi_test();
 
 

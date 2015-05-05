@@ -25,6 +25,8 @@ typedef em_uint32 (*uart_stop_func)();
 typedef em_uint32 (*uart_write_func)(em_uint8);
 typedef em_uint32 (*uart_read_func)(em_uint8 *);
 typedef em_uint32 (*test_func)();
+typedef em_uint32 (*pwm_start_func)(em_uint32 ,em_uint32 ,em_uint32 ,em_uint16 ,em_uint16);
+typedef em_uint32 (*pwm_write_func)(em_uint32,em_uint32);
 
 typedef struct {
 
@@ -45,6 +47,8 @@ typedef struct {
     uart_stop_func uart_stop;
     uart_write_func uart_write;
     uart_read_func uart_read;
+    pwm_start_func pwm_start;
+    pwm_write_func pwm_write;
 
     test_func test;
 
@@ -73,6 +77,8 @@ em_uint32 em_io_initialize(em_uint32 system){
     current_board.uart_stop=em_raspi_uart_stop;
     current_board.uart_read=em_raspi_uart_read;
     current_board.uart_write=em_raspi_uart_write;
+    current_board.pwm_start=em_raspi_pwm_start;
+    current_board.pwm_write=em_raspi_pwm_write;
 
     current_board.test=em_raspi_test;
     return current_board.initialize(system);
@@ -121,6 +127,14 @@ em_uint32 em_io_mini_uart_write(em_uint8 data){
 em_uint32 em_io_mini_uart_read(em_uint8 *data){
 	return current_board.mini_uart_read(data);
 }
+
+em_uint32 em_io_pwm_start(em_uint32 channel, em_uint32 options,em_uint32 range,em_uint16 divi,em_uint16 divif){
+	return current_board.pwm_start(channel,options,range,divi,divif);
+}
+em_uint32 em_io_pwm_write(em_uint32 channel,em_uint32 data){
+	return current_board.pwm_write(channel,data);
+}
+
 
 em_uint32 em_io_test(){
 	return current_board.test();

@@ -301,12 +301,34 @@ int test_uart(){
 }
 
 
+int test_pwm(){
+	if(em_io_initialize(0))
+							  return 1;
+
+	em_raspi_pwm_start(0, EM_PWM_MODE_DEFAULT |EM_PWM_USE_FIF0,1024,256,0);
+		int i=0;
+
+
+		em_raspi_pwm_status();
+	    em_uint32 val_temp=0;
+		while(1)
+		{
+			if(em_raspi_pwm_write(0,val_temp++))
+				val_temp--;
+
+			if(val_temp>=1024)
+				val_temp=0;
+			em_raspi_busy_wait(10);
+		}
+}
+
+
 
 
 int main(void) {
 
 
-test_uart();
+test_pwm();
 
 
   return 0;

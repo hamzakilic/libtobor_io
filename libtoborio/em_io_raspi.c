@@ -14,18 +14,24 @@
 #define PERIPHERALS_TIMER_PHYSICAL 0x3000
 #define PERIPHERALS_MINI_UART_PHYSICAL 0x215000
 #define PERIPHERALS_UART_PHYSICAL 0x201000
+#define PERIPHERALS_PWM_PHYSICAL 0x20C000
+#define PERIPHERALS_PWM_CLOCK_PHYSICAL 0x101000
 
 static em_uint32 mem_fd;
 volatile em_uint32 * gpio;
 volatile em_uint32 * timer;
 volatile em_uint32 *mini_uart;
 volatile em_uint32 *uart;
+volatile em_uint32 *pwm;
+volatile em_uint32 *pwm_clock;
 
 
 #define GPIO_REGISTERS_SIZE  (0xB0)
 #define TIMER_REGISTERS_SIZE (0x18)
 #define MINI_UART_REGISTERS_SIZE  (0xD4)
 #define UART_REGISTERS_SIZE  (0x8C)
+#define PWM_REGISTERS_SIZE (0x28)
+#define PWM_CLOCK_REGISTERS_SIZE (0xa8)
 
 static em_uint8 pin_maps[255] = { 2, 3, 4, 14, 15, 17, 18, 27, 22, 23, 24, 10,
 		9, 25, 11, 8, 7 };
@@ -76,11 +82,13 @@ em_uint32 em_raspi_initialize(em_uint32 system) {
 	timer = (volatile em_uint32 *) mmap(NULL, TIMER_REGISTERS_SIZE,PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd,(PERIPHERALS_BASE_PHYSICAL + PERIPHERALS_TIMER_PHYSICAL));
 	mini_uart = (volatile em_uint32 *) mmap(NULL, MINI_UART_REGISTERS_SIZE,PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd,(PERIPHERALS_BASE_PHYSICAL + PERIPHERALS_MINI_UART_PHYSICAL));
 	uart = (volatile em_uint32 *) mmap(NULL, UART_REGISTERS_SIZE,PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd,(PERIPHERALS_BASE_PHYSICAL + PERIPHERALS_UART_PHYSICAL));
+	pwm = (volatile em_uint32 *) mmap(NULL, PWM_REGISTERS_SIZE,PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd,(PERIPHERALS_BASE_PHYSICAL + PERIPHERALS_PWM_PHYSICAL));
+	pwm_clock = (volatile em_uint32 *) mmap(NULL, PWM_CLOCK_REGISTERS_SIZE,PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd,(PERIPHERALS_BASE_PHYSICAL + PERIPHERALS_PWM_CLOCK_PHYSICAL));
 
 
 	close(mem_fd);
-	if (gpio == MAP_FAILED ||  timer == MAP_FAILED || mini_uart==MAP_FAILED || uart==MAP_FAILED) {
-		em_log(EM_LOG_FATAL, errno, "map to ram ,gpio or timer or mini_uart or uart failed\n");
+	if (gpio == MAP_FAILED ||  timer == MAP_FAILED || mini_uart==MAP_FAILED || uart==MAP_FAILED || pwm==MAP_FAILED || pwm_clock==MAP_FAILED) {
+		em_log(EM_LOG_FATAL, errno, "map to ram ,gpio or timer or mini_uart or uart  or pwm or pwm_clock failed\n");
 		return EM_ERROR_CANNOT_OPEN;
 	}
 
@@ -366,9 +374,12 @@ em_uint32 em_raspi_read_event(em_uint8 number,em_uint8* val){
 #define PERIPHERALS_TIMER_COUNTER_HIGH_PHYSICAL (0x8/sizeof(em_uint32))
 
 em_uint32 em_raspi_current_time(em_uint64 *time_value){
+
 	volatile em_uint32 * address_low =(timer + PERIPHERALS_TIMER_COUNTER_LOW_PHYSICAL);
 	volatile em_uint32 * address_high =(timer +  PERIPHERALS_TIMER_COUNTER_HIGH_PHYSICAL);
+
 	em_uint32 low_value=arm_read(address_low);
+
 	em_uint32 high_value=arm_read(address_high);
 	em_uint64 temp=high_value;
 	temp = temp << 32;
@@ -384,6 +395,7 @@ em_uint32 em_raspi_busy_wait(em_uint64 micro_seconds){
     em_uint64 current_val=0;
     em_uint64 temp_val;
     em_uint32 ret_val;
+
     ret_val=em_raspi_current_time(&current_val);
     if(ret_val)
     	return ret_val;
@@ -392,7 +404,7 @@ em_uint32 em_raspi_busy_wait(em_uint64 micro_seconds){
        if(ret_val)
     	   return ret_val;
 
-       if(temp_val-current_val>=micro_seconds)
+       if( (temp_val-current_val)>=micro_seconds)
     	   break;
     }
 return EM_SUCCESS;
@@ -780,24 +792,147 @@ em_uint32 em_raspi_uart_write(em_uint8 val){
 
 }
 
+#define PERIPHERALS_PWM_CONTROL_PHYSICAL (0x0)
+#define PERIPHERALS_PWM_STATUS_PHYSICAL (0x4/sizeof(em_uint32))
+#define PERIPHERALS_PWM_DMA_PHYSICAL (0x8/sizeof(em_uint32))
+#define PERIPHERALS_PWM_CHANNEL1_RANGE_PHYSICAL (0x10/sizeof(em_uint32))
+#define PERIPHERALS_PWM_CHANNEL1_DATA_PHYSICAL (0x14/sizeof(em_uint32))
+#define PERIPHERALS_PWM_FIFO_INPUT_PHYSICAL (0x18/sizeof(em_uint32))
+#define PERIPHERALS_PWM_CHANNEL2_RANGE_PHYSICAL (0x20/sizeof(em_uint32))
+#define PERIPHERALS_PWM_CHANNEL2_DATA_PHYSICAL (0x24/sizeof(em_uint32))
+#define PERIPHERALS_PWM_CLOCK_OFFSET_PHYSICAL (0xa0/sizeof(em_uint32))
+#define PERIPHERALS_PWM_CLOCK_OFFSET_DIV_PHYSICAL (0xa4/sizeof(em_uint32))
+
+
+
+em_uint32 em_raspi_pwm_status(){
+	volatile * address_stat=pwm+PERIPHERALS_PWM_STATUS_PHYSICAL;
+		em_uint32 val_stat=arm_read(address_stat);
+		if(val_stat & (0x1<<0))
+			em_log(EM_LOG_INFO,0,"pwm fifo is full\n");
+		if(val_stat & (0x1<<1))
+					em_log(EM_LOG_INFO,0,"pwm fifo is empty\n");
+		if(val_stat & (0x1<<2))
+					em_log(EM_LOG_INFO,0,"pwm fifo write error\n");
+		if(val_stat & (0x1<<3))
+					em_log(EM_LOG_INFO,0,"pwm fifo read error\n");
+
+		em_log(EM_LOG_INFO,0,"pwm status is %u \n",val_stat);
+       *address_stat=val_stat;
+       val_stat=arm_read(address_stat);
+       em_log(EM_LOG_INFO,0,"pwm status is2 %u \n",val_stat);
+       return EM_SUCCESS;
+
+}
+
+static em_uint32 pwm_channel_0_use_fifo=0;
+
+em_uint32 em_raspi_pwm_start(em_uint32 channel, em_uint32 options,em_uint32 range,em_uint16 divi,em_uint16 divif){
+
+	if(channel !=0)
+		return EM_ERROR_NOT_IMPLEMENTED;
+
+	volatile * address_control=pwm+PERIPHERALS_PWM_CONTROL_PHYSICAL;
+	        em_uint32 val_control_old=arm_read(address_control);
+			*address_control=0;
+	        volatile *address_pwm_clock=pwm_clock+PERIPHERALS_PWM_CLOCK_OFFSET_PHYSICAL;
+
+	        		*address_pwm_clock=((0x5a<<24) | 0x01);
+	        		em_raspi_busy_wait(110);
+	        		while(((*address_pwm_clock) & 0x80)!=0){
+	        			//is_busy
+	        			em_io_delay_loops(10);
+	        		}
+	        		volatile * address_range=pwm+PERIPHERALS_PWM_CHANNEL1_RANGE_PHYSICAL;
+	        			*address_range=range;
+	        			em_io_delay_microseconds(150);
+
+	        		volatile *address_pwm_clock_div=pwm_clock+PERIPHERALS_PWM_CLOCK_OFFSET_DIV_PHYSICAL;
+	        				em_uint32 val_clock_div=0x5a<<24;
+	        				val_clock_div |= ((divi) << 12);
+	        				val_clock_div |= (divif);
+	        				*address_pwm_clock_div=val_clock_div;
+
+	        				em_uint32 val_pwm_clock = 0x5a << 24;
+	        				val_pwm_clock |=0x11;
+	        				*address_pwm_clock=val_pwm_clock;
+
+  em_io_delay_microseconds(150);
+
+	em_uint32 val_control=0;
+
+	em_io_gpio_mode(EM_GPIO_6,EM_MODE_GPIO_FUNC5);//setting gpio to pwm mode
+
+    if(options & EM_PWM_MODE_DEFAULT)
+    	val_control=MAKE_BIT_ZERO(val_control,1);
+    else val_control=MAKE_BIT_ONE(val_control,1);
+
+	val_control=MAKE_BIT_ZERO(val_control,2);//
+	val_control=MAKE_BIT_ZERO(val_control,3);//
+	val_control=MAKE_BIT_ZERO(val_control,4);//
+	if(options & EM_PWM_USE_FIF0){
+		val_control=MAKE_BIT_ONE(val_control,5);//
+		pwm_channel_0_use_fifo=1;
+	}
+	else val_control=MAKE_BIT_ZERO(val_control,5);//
+
+
+    val_control=MAKE_BIT_ONE(val_control,0);//enable pwm
+
+		*address_control=val_control;//set value to control
+		em_io_delay_microseconds(150);
+		em_raspi_pwm_status();
+
+
+
+
+	return EM_SUCCESS;
+
+}
+
+
+em_uint32 em_raspi_pwm_write(em_uint32 channel,em_uint32 data){
+
+
+	if(pwm_channel_0_use_fifo){
+		volatile * address_fifo=pwm+PERIPHERALS_PWM_FIFO_INPUT_PHYSICAL;
+				*address_fifo=data;
+				volatile * address_stat=pwm+PERIPHERALS_PWM_STATUS_PHYSICAL;
+				em_uint32 val_stat=arm_read(address_stat);
+				if(val_stat & (0x1<<2)){
+					*address_stat=val_stat;
+					 return EM_ERROR_IO_WRITE;
+				}
+
+
+
+	}else{
+	volatile * address_data=pwm+PERIPHERALS_PWM_CHANNEL1_DATA_PHYSICAL;
+	*address_data=data;
+	}
+
+
+
+	return EM_SUCCESS;
+}
 
 
 em_uint32 em_raspi_test(){
-	em_raspi_uart_start(EM_UART_RECEIVE_ENABLE|EM_UART_TRANSMIT_ENABLE| EM_UART_DATA_8BIT_ENABLE| EM_UART_PARITY_ENABLE|EM_UART_FIF0_ENABLE ,9600);
-	const char *test="hamza";
+	em_raspi_pwm_start(0, EM_PWM_MODE_DEFAULT |EM_PWM_USE_FIF0,1024,256,0);
 	int i=0;
-	for(i=0;i<10;++i){
-		em_raspi_uart_write('a');
+
+
+	em_raspi_pwm_status();
+    em_uint32 val_temp=0;
+	while(1)
+	{
+		if(em_raspi_pwm_write(0,0))
+			val_temp--;
+
+		if(val_temp>=1024)
+			val_temp=0;
+		em_raspi_busy_wait(10);
 	}
-	em_uint8 read=0;
-	while(1){
-
-		if(em_raspi_uart_read(&read)==EM_SUCCESS){
-			em_raspi_uart_write(read);
-
-		}
-	}
-
 	return EM_SUCCESS;
 }
 
