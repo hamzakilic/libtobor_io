@@ -70,7 +70,8 @@
 #define EM_UART_DATA_8BIT_ENABLE 0x200
 #define EM_UART_RECEIVE_ENABLE 0x0400
 
-
+#define EM_USE_BSC0 0x01
+#define EM_USE_BSC1 0x02
 
 
 

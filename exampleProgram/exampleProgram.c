@@ -322,13 +322,51 @@ int test_pwm(){
 		}
 }
 
+int test_i2c(){
+
+	if(em_io_initialize(0))
+							  return 1;
+	//testing atmel 24c02
+	em_uint16 slave=0x51;
+	em_uint8 s=0x10;
+	em_raspi_i2c_start(EM_USE_BSC1,0,0);
+	for(s=0x00;s<0xFF;++s){
+		em_log(EM_LOG_INFO,0,"address is %#010x\n",s);
+
+	    em_uint8 data[]={s,s};
+
+	    if(em_raspi_i2c_write(EM_USE_BSC1,slave,data,2)){
+	   	em_log(EM_LOG_INFO,0,"birinci yazilamadi\n");
+	   	break;
+	    }else em_log(EM_LOG_INFO,0,"birinci yazildi \n");
+	    em_io_busy_wait(0.001*1000000);
+
+		if(em_raspi_i2c_write(EM_USE_BSC1,slave,data,1)){
+		   	em_log(EM_LOG_INFO,0,"ikinci yazilamadi\n");
+		    	break;
+		}else{
+			em_log(EM_LOG_INFO,0,"ikinci yazildi\n");
+		}
+		 em_io_busy_wait(0.001*1000000);
+		em_uint8 data2[]={0x0,0};
+		em_uint32 lenght=1;
+
+		if(em_raspi_i2c_read(EM_USE_BSC1,slave,data2,&lenght)){
+			em_log(EM_LOG_INFO,0,"okunamadı\n");
+			break;
+		}
+		else{
+			em_log(EM_LOG_INFO,0,"lenght=%u data=%#010x\n",lenght,data2[0]);
+		}
+	}
+
+}
+
 
 
 
 int main(void) {
-
-
-test_pwm();
+	test_i2c();
 
 
   return 0;

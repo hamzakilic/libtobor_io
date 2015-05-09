@@ -16,6 +16,9 @@
 #define PERIPHERALS_UART_PHYSICAL 0x201000
 #define PERIPHERALS_PWM_PHYSICAL 0x20C000
 #define PERIPHERALS_PWM_CLOCK_PHYSICAL 0x101000
+#define PERIPHERALS_BSC0_PHYSICAL 0x205000
+#define PERIPHERALS_BSC1_PHYSICAL 0x804000
+
 
 static em_uint32 mem_fd;
 volatile em_uint32 * gpio;
@@ -24,6 +27,8 @@ volatile em_uint32 *mini_uart;
 volatile em_uint32 *uart;
 volatile em_uint32 *pwm;
 volatile em_uint32 *pwm_clock;
+volatile em_uint32 *bsc0;
+volatile em_uint32 *bsc1;
 
 
 #define GPIO_REGISTERS_SIZE  (0xB0)
@@ -32,6 +37,7 @@ volatile em_uint32 *pwm_clock;
 #define UART_REGISTERS_SIZE  (0x8C)
 #define PWM_REGISTERS_SIZE (0x28)
 #define PWM_CLOCK_REGISTERS_SIZE (0xa8)
+#define BSC_REGISTERS_SIZE (0x20)
 
 static em_uint8 pin_maps[255] = { 2, 3, 4, 14, 15, 17, 18, 27, 22, 23, 24, 10,
 		9, 25, 11, 8, 7 };
@@ -84,10 +90,13 @@ em_uint32 em_raspi_initialize(em_uint32 system) {
 	uart = (volatile em_uint32 *) mmap(NULL, UART_REGISTERS_SIZE,PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd,(PERIPHERALS_BASE_PHYSICAL + PERIPHERALS_UART_PHYSICAL));
 	pwm = (volatile em_uint32 *) mmap(NULL, PWM_REGISTERS_SIZE,PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd,(PERIPHERALS_BASE_PHYSICAL + PERIPHERALS_PWM_PHYSICAL));
 	pwm_clock = (volatile em_uint32 *) mmap(NULL, PWM_CLOCK_REGISTERS_SIZE,PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd,(PERIPHERALS_BASE_PHYSICAL + PERIPHERALS_PWM_CLOCK_PHYSICAL));
+	bsc0 = (volatile em_uint32 *) mmap(NULL, BSC_REGISTERS_SIZE,PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd,(PERIPHERALS_BASE_PHYSICAL + PERIPHERALS_BSC0_PHYSICAL));
+	bsc1 = (volatile em_uint32 *) mmap(NULL, BSC_REGISTERS_SIZE,PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd,(PERIPHERALS_BASE_PHYSICAL + PERIPHERALS_BSC1_PHYSICAL));
+
 
 
 	close(mem_fd);
-	if (gpio == MAP_FAILED ||  timer == MAP_FAILED || mini_uart==MAP_FAILED || uart==MAP_FAILED || pwm==MAP_FAILED || pwm_clock==MAP_FAILED) {
+	if (gpio == MAP_FAILED ||  timer == MAP_FAILED || mini_uart==MAP_FAILED || uart==MAP_FAILED || pwm==MAP_FAILED || pwm_clock==MAP_FAILED || bsc0==MAP_FAILED || bsc1==MAP_FAILED) {
 		em_log(EM_LOG_FATAL, errno, "map to ram ,gpio or timer or mini_uart or uart  or pwm or pwm_clock failed\n");
 		return EM_ERROR_CANNOT_OPEN;
 	}
@@ -916,23 +925,182 @@ em_uint32 em_raspi_pwm_write(em_uint32 channel,em_uint32 data){
 	return EM_SUCCESS;
 }
 
+#define PERIPHERALS_BSC_CONTROL_PHYSICAL (0x0)
+#define PERIPHERALS_BSC_STATUS_PHYSICAL (0x04/sizeof(em_uint32))
+#define PERIPHERALS_BSC_DATA_LENGHT_PHYSICAL (0x08/sizeof(em_uint32))
+#define PERIPHERALS_BSC_SLAVE_ADDRESS_PHYSICAL (0x0c/sizeof(em_uint32))
+#define PERIPHERALS_BSC_DATA_FIFO_PHYSICAL (0x010/sizeof(em_uint32))
+#define PERIPHERALS_BSC_CLOCK_DIVIDER_PHYSICAL (0x14/sizeof(em_uint32))
+#define PERIPHERALS_BSC_DATA_DELAY_PHYSICAL (0x18/sizeof(em_uint32))
+#define PERIPHERALS_BSC_CLOCK_STRETCH_PHYSICAL (0x1c/sizeof(em_uint32))
+
+
+
+
+em_uint32 em_raspi_i2c_start(em_uint8 channel,em_uint16 divider,em_uint16 timeout){
+
+	volatile *address_div=0;
+	volatile *address_timeout=0;
+	volatile *address_delay=0;
+		if(channel & EM_USE_BSC0)
+		{
+			return EM_ERROR_NOT_IMPLEMENTED;
+		}
+		else if(channel & EM_USE_BSC1)
+			{
+			 em_raspi_gpio_mode(EM_GPIO_0,EM_MODE_GPIO_FUNC0);
+			 em_raspi_gpio_mode(EM_GPIO_1,EM_MODE_GPIO_FUNC0);
+			 address_div=(bsc1+PERIPHERALS_BSC_CLOCK_DIVIDER_PHYSICAL);
+			 address_timeout=(bsc1+PERIPHERALS_BSC_CLOCK_STRETCH_PHYSICAL);
+			 address_delay=(bsc1+PERIPHERALS_BSC_DATA_DELAY_PHYSICAL);
+			 if(divider>0){
+			 arm_write(address_div,divider);
+			 arm_write(address_delay,divider/3);
+			 }
+			 if(timeout>0)
+				 arm_write(address_timeout,timeout);
+			}
+		else return EM_ERROR_NOT_IMPLEMENTED;
+
+
+
+
+  return EM_SUCCESS;
+}
+
+em_uint32 em_raspi_i2c_write(em_uint8 channel,em_uint16 address,const em_uint8 * const data,em_uint32 data_lenght){
+
+	if(channel & EM_USE_BSC0)
+			{
+				return EM_ERROR_NOT_IMPLEMENTED;
+			}
+	volatile * address_control=bsc1+PERIPHERALS_BSC_CONTROL_PHYSICAL;
+	volatile * address_length=bsc1+PERIPHERALS_BSC_DATA_LENGHT_PHYSICAL;
+	volatile * address_status=bsc1+PERIPHERALS_BSC_STATUS_PHYSICAL;
+    volatile * address_slave=bsc1+PERIPHERALS_BSC_SLAVE_ADDRESS_PHYSICAL;
+    volatile * address_fifo=bsc1+PERIPHERALS_BSC_DATA_FIFO_PHYSICAL;
+   // volatile * address_div=(bsc1+PERIPHERALS_BSC_CLOCK_DIVIDER_PHYSICAL);
+   // em_uint32 divider=arm_read(address_div);
+   // em_uint32 wait_one_byte_transfer_clock=((divider*1.0)/250000000)*1000000*9;
+    arm_write(address_length,data_lenght);
+    arm_write(address_slave,address);
+    arm_write(address_status,(0x1<<9) | (0x1<<8) | (0x1 << 1));//clock strecth,ACK error,Done clear
+    arm_write(address_control, (0x1<<4));//clear fifo and done bit
+    arm_write(address_fifo,data[0]);
+    arm_write(address_control,(0x1<<7)|(0x1<<15));
+    //em_io_delay_loops(wait_one_byte_transfer_clock);
+
+
+
+
+    em_uint32 index=1;
+    while(1){
+    	em_uint32 stat=arm_read(address_status);
+
+    	if(stat & (0x1<<1))//transfer done
+    		break;
+
+    	while((index < data_lenght) &&  (stat & (0x1<<4)))//txd fifo can accept data
+    	{
+
+          *address_fifo=data[index++];
+          //em_io_delay_loops(wait_one_byte_transfer_clock*10000);
+
+    	}
+
+    }
+
+
+    	em_uint32 stat=arm_read(address_status);
+
+    	    	if(stat & ( (0x1<<8) | (0x1 <<9)) ){
+    	    		//em_log(EM_LOG_INFO,0,"write stat error is %u\n",stat);
+    	    		return EM_ERROR_IO_WRITE;
+    	    	}
+    	    	if(index<data_lenght){
+    	    		//em_log(EM_LOG_INFO,0,"write stat index  is %u\n",index);
+    	    		return EM_ERROR_IO_WRITE;
+    	    	}
+
+
+    return EM_SUCCESS;
+
+
+}
+
+em_uint32 em_raspi_i2c_read(em_uint8 channel,em_uint16 address,em_uint8 *data,em_uint32 *data_lenght){
+
+	if(channel & EM_USE_BSC0)
+			{
+				return EM_ERROR_NOT_IMPLEMENTED;
+			}
+	volatile * address_control=bsc1+PERIPHERALS_BSC_CONTROL_PHYSICAL;
+	volatile * address_length=bsc1+PERIPHERALS_BSC_DATA_LENGHT_PHYSICAL;
+	volatile * address_status=bsc1+PERIPHERALS_BSC_STATUS_PHYSICAL;
+    volatile * address_slave=bsc1+PERIPHERALS_BSC_SLAVE_ADDRESS_PHYSICAL;
+    volatile * address_fifo=bsc1+PERIPHERALS_BSC_DATA_FIFO_PHYSICAL;
+    arm_write(address_length,*data_lenght);
+    arm_write(address_control, (0x1<<4));//clear fifo
+    arm_write(address_slave,address);
+    arm_write(address_status,(0x1<<9) | (0x1<<8) | (0x1 << 1));
+    arm_write(address_control,(0x1<<7) | (0x1<<15) | (0x01));
+
+    em_uint32 index=0;
+    while(1){
+
+
+    	while(arm_read(address_status) & (0x1<<5)){
+    		if(index<*data_lenght)
+        data[index]= arm_read(address_fifo);
+       // em_log(EM_LOG_INFO,0,"read data is %u\n",data[index]);
+        index++;
+    	continue;
+    	}
+    	em_uint32 stat=arm_read(address_status);
+    	if(stat & (0x1<<1))//transfer done
+    		break;
+    }
+    em_uint32 stat=arm_read(address_status);
+
+        	    	if(stat & ( (0x1<<8) | (0x1 <<9)) ){
+        	    		//em_log(EM_LOG_INFO,0,"write stat error is %u\n",stat);
+        	    		*data_lenght=index;
+        	    		return EM_ERROR_IO_READ;
+        	    	}
+
+        	    	if(index>*data_lenght){
+        	    		//em_log(EM_LOG_INFO,0,"write stat index  is %u\n",index);
+        	    		*data_lenght=index;
+        	    		return EM_ERROR_IO_READ;
+        	    	}
+        	    	*data_lenght=index;
+
+    return EM_SUCCESS;
+
+
+}
+
+
+em_uint32 em_raspi_i2c_stop(em_uint8 channel){
+	volatile *address=0;
+	if(channel & EM_USE_BSC0)
+		address=(bsc0+PERIPHERALS_BSC_CONTROL_PHYSICAL);
+	else if(channel & EM_USE_BSC1)
+		address=(bsc1+PERIPHERALS_BSC_CONTROL_PHYSICAL);
+	else return EM_ERROR_NOT_IMPLEMENTED;
+	arm_write(address,0);
+	return EM_SUCCESS;
+}
+
+
+
+
 
 em_uint32 em_raspi_test(){
-	em_raspi_pwm_start(0, EM_PWM_MODE_DEFAULT |EM_PWM_USE_FIF0,1024,256,0);
-	int i=0;
 
 
-	em_raspi_pwm_status();
-    em_uint32 val_temp=0;
-	while(1)
-	{
-		if(em_raspi_pwm_write(0,0))
-			val_temp--;
 
-		if(val_temp>=1024)
-			val_temp=0;
-		em_raspi_busy_wait(10);
-	}
+
 	return EM_SUCCESS;
 }
 
