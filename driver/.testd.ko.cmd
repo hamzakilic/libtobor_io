@@ -1,0 +1,1 @@
+cmd_/work/projects/tobor/libtobor_io/driver/testd.ko := arm-raspi-linux-gnueabi-ld -EL -r  -T /work/raspberrypi/linux/scripts/module-common.lds --build-id  -o /work/projects/tobor/libtobor_io/driver/testd.ko /work/projects/tobor/libtobor_io/driver/testd.o /work/projects/tobor/libtobor_io/driver/testd.mod.o

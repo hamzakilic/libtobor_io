@@ -238,21 +238,6 @@ int test_mini_uart(){
 		//em_raspi_uart_extra_status();
 	    const char * value="hamza calisti";
 
-		/*em_uint8 read;
-	    for(i=0;i<strlen(value);++i){
-
-	    	if(em_raspi_uart_read(&read)==EM_SUCCESS){
-	    		em_log(EM_LOG_INFO,0,"read value is %u\n",read);
-	    	}
-
-	    	if(em_raspi_uart_write(value[i])){
-	    		--i;
-	    		em_log(EM_LOG_ERROR,0,"yazilamadi\n");
-	    	}
-
-
-	    }*/
-
 	    em_uint8 read=0;
 	        while(1){
 
@@ -281,17 +266,17 @@ int test_mini_uart(){
 int test_uart(){
 	if(em_io_initialize(0))
 						  return 1;
-	em_raspi_uart_start(EM_UART_RECEIVE_ENABLE|EM_UART_TRANSMIT_ENABLE| EM_UART_DATA_8BIT_ENABLE| EM_UART_PARITY_ENABLE|EM_UART_FIF0_ENABLE ,9600);
+	em_io_uart_start(EM_UART_RECEIVE_ENABLE|EM_UART_TRANSMIT_ENABLE| EM_UART_DATA_8BIT_ENABLE| EM_UART_PARITY_ENABLE|EM_UART_FIF0_ENABLE ,9600);
 
 		int i=0;
 		for(i=0;i<10;++i){
-			em_raspi_uart_write('a');
+			em_io_uart_write('a');
 		}
 		em_uint8 read=0;
 		while(1){
 
-			if(em_raspi_uart_read(&read)==EM_SUCCESS){
-				em_raspi_uart_write(read);
+			if(em_io_uart_read(&read)==EM_SUCCESS){
+				em_io_uart_write(read);
 
 			}
 		}
@@ -299,6 +284,8 @@ int test_uart(){
 		return EM_SUCCESS;
 
 }
+
+
 
 
 int test_pwm(){
@@ -363,10 +350,232 @@ int test_i2c(){
 }
 
 
+int test_pca9685_pwm_driver(){
+	if(em_io_initialize(0))
+		return 1;
+#define MAX_PWM 148;
+		//int frequency_divider=250000000/MAX_PWM;
+		em_uint8 slave=0x40;
+		int read=0x01;
+		int write=0xFE;
+		int fixed=0x80;
+
+#define PCA9685_SUBADR1 0x2
+#define PCA9685_SUBADR2 0x3
+#define PCA9685_SUBADR3 0x4
+
+#define PCA9685_MODE1 0x0
+#define PCA9685_PRESCALE 0xFE
+
+#define LED0_ON_L 0x6
+#define LED0_ON_H 0x7
+#define LED0_OFF_L 0x8
+#define LED0_OFF_H 0x9
+
+#define ALLLED_ON_L 0xFA
+#define ALLLED_ON_H 0xFB
+#define ALLLED_OFF_L 0xFC
+#define ALLLED_OFF_H 0xFD
+
+		em_log(EM_LOG_FATAL,0,"starting i2c\n");
+		em_io_i2c_start(EM_USE_BSC1,0,0);
+		em_log(EM_LOG_FATAL,0,"started i2c\n");
+		//int frequency_scale= (int)(25000000.0f / (4096 * 50) -1.0f);
+		int frequency_scale= (int)(25000000.0f /(4096*200)-1.0f);
+		em_log(EM_LOG_FATAL,0,"frequency scale is %u\n",frequency_scale);
+
+
+
+
+
+		em_uint8 oldmod=0;
+		em_uint32 length=1;
+		em_uint8 data[]={PCA9685_MODE1};
+		if(em_io_i2c_write(EM_USE_BSC1,slave,data,length)){
+					em_log(EM_LOG_FATAL,0,"mod write error\n");
+								return 1;
+				}
+		if(em_io_i2c_read(EM_USE_BSC1,slave,&oldmod,&length)){
+			em_log(EM_LOG_FATAL,0,"mod read error\n");
+			return 1;
+		}
+		em_log(EM_LOG_FATAL,0,"old mode is %u\n",oldmod);
+		em_uint8 newMode=(oldmod &0x7F) |0x10;//sleep
+		em_uint8 data2[2]={PCA9685_MODE1,newMode};
+		if(em_io_i2c_write(EM_USE_BSC1,slave,data2,2)){
+			em_log(EM_LOG_FATAL,0,"mod write error1\n");
+						return 1;
+		}
+		data2[0]=PCA9685_PRESCALE;
+		data2[1]=frequency_scale;
+		if(em_io_i2c_write(EM_USE_BSC1,slave,data2,2)){
+					em_log(EM_LOG_FATAL,0,"frequency write error\n");
+								return 1;
+				}
+		data2[0]=PCA9685_MODE1;
+	    data2[1]=oldmod;
+	    if(em_io_i2c_write(EM_USE_BSC1,slave,data2,2)){
+	    			em_log(EM_LOG_FATAL,0,"mod write error3\n");
+	    						return 1;
+	    }
+	    em_io_delay_loops(5000);
+	    data2[0]=PCA9685_MODE1;
+	    	    data2[1]=oldmod|0xa1;
+	    	    if(em_io_i2c_write(EM_USE_BSC1,slave,data2,2)){
+	    	    			em_log(EM_LOG_FATAL,0,"mod write error4\n");
+	    	    						return 1;
+	    	    }
+
+	    	    if(em_io_i2c_write(EM_USE_BSC1,slave,data,1)){
+	    	    					em_log(EM_LOG_FATAL,0,"mod write error\n");
+	    	    								return 1;
+	    	    				}
+	    	    		if(em_io_i2c_read(EM_USE_BSC1,slave,&oldmod,&length)){
+	    	    			em_log(EM_LOG_FATAL,0,"mod read error\n");
+	    	    			return 1;
+	    	    		}
+	    	    		em_log(EM_LOG_FATAL,0,"old mode is %u\n",oldmod);
+                          em_uint32 min=700;
+                          em_uint32 max=2000;
+
+
+	    	    		 em_uint8 datapwm[5];
+
+	    	    			    	    	    	    	em_uint32 on=0;//4095-i;
+	    	    			    	    	    	    	em_uint32 off=max;
+	    	    			    	    	    	    	datapwm[0]=LED0_ON_L;
+	    	    			    	    	    	    	datapwm[1]=on;// & 0xFF;
+	    	    			    	    	    	    	datapwm[2]=(on>>8);//& 0xf;
+	    	    			    	    	    	    	datapwm[3]=off ;//& 0xFF;
+	    	    			    	    	    	    	datapwm[4]=(off >>8);//& 0xf;
+	    	    			    	    	    	    	 if(em_io_i2c_write(EM_USE_BSC1,slave,datapwm,5)){
+	    	    			    	    	    	    		    	    			em_log(EM_LOG_FATAL,0,"pwm write error\n");
+	    	    			    	    	    	    		    	    						return 1;
+	    	    			    	    	    	    	 }
+	    	    			    		    	    			em_log(EM_LOG_INFO,0,"open motor\n");
+	    	    			    		    	    			getchar();
+	    	    			    		    	    			em_io_delay_microseconds(2000000);
+	    	    			    		    	    			off=min;
+	    	    			    		    	    			datapwm[0]=LED0_ON_L;
+	    	    			    		    	    				    	    			    	    	    	    	datapwm[1]=on;// & 0xFF;
+	    	    			    		    	    				    	    			    	    	    	    	datapwm[2]=(on>>8);//& 0xf;
+	    	    			    		    	    				    	    			    	    	    	    	datapwm[3]=off ;//& 0xFF;
+	    	    			    		    	    				    	    			    	    	    	    	datapwm[4]=(off >>8);//& 0xf;
+	    	    			    		    	    				    	    			    	    	    	    	 if(em_io_i2c_write(EM_USE_BSC1,slave,datapwm,5)){
+	    	    			    		    	    				    	    			    	    	    	    		    	    			em_log(EM_LOG_FATAL,0,"pwm write error\n");
+	    	    			    		    	    				    	    			    	    	    	    		    	    						return 1;
+	    	    			    		    	    				    	    			    	    	    	    	 }
+	    	    			    		    	    				    	    			    	    	    	    	 em_io_delay_microseconds(1000000);
+getchar();
+
+getchar();
+
+
+
+
+
+
+
+	    	    /*em_log(EM_LOG_FATAL,0,"starting\n");
+
+	    	                    em_uint32 values[]={5000,-5000};
+	    	                    em_uint32 i;
+	    	                    em_uint32 temp=0;
+	    	                    for(temp=min+50;temp<max;temp++){
+
+	    	    	    	    em_uint8 datapwm[5];
+	    	    	    	    	em_uint32 on=0;
+	    	    	    	    	em_uint32 off=temp;
+	    	    	    	    	datapwm[0]=LED0_ON_L;
+	    	    	    	    	datapwm[1]=on;// & 0xFF;
+	    	    	    	    	datapwm[2]=(on>>8);//& 0xf;
+	    	    	    	    	datapwm[3]=off ;//& 0xFF;
+	    	    	    	    	datapwm[4]=(off >>8);//& 0xf;
+	    	    	    	    	 if(em_io_i2c_write(EM_USE_BSC1,slave,datapwm,5)){
+	    	    	    	    		    	    			em_log(EM_LOG_FATAL,0,"pwm write error\n");
+	    	    	    	    		    	    						return 1;
+	    	    	    	    	 }
+	    	    	    	    	 em_io_delay_microseconds(10000);
+	    	    	    	    	 em_log(EM_LOG_FATAL,0,"%u\n",temp);
+
+	    	    	    	    	 }
+	    	                    for(temp=max;temp>min+50;temp--){
+
+	    	                    	    	    	    	    em_uint8 datapwm[5];
+	    	                    	    	    	    	    	em_uint32 on=0;
+	    	                    	    	    	    	    	em_uint32 off=temp;
+	    	                    	    	    	    	    	datapwm[0]=LED0_ON_L;
+	    	                    	    	    	    	    	datapwm[1]=on;// & 0xFF;
+	    	                    	    	    	    	    	datapwm[2]=(on>>8);//& 0xf;
+	    	                    	    	    	    	    	datapwm[3]=off ;//& 0xFF;
+	    	                    	    	    	    	    	datapwm[4]=(off >>8);//& 0xf;
+	    	                    	    	    	    	    	 if(em_io_i2c_write(EM_USE_BSC1,slave,datapwm,5)){
+	    	                    	    	    	    	    		    	    			em_log(EM_LOG_FATAL,0,"pwm write error\n");
+	    	                    	    	    	    	    		    	    						return 1;
+	    	                    	    	    	    	    	 }
+	    	                    	    	    	    	    	 em_io_delay_microseconds(10000);
+	    	                    	    	    	    	    	 em_log(EM_LOG_FATAL,0,"%u\n",temp);
+
+	    	                    	    	    	    	    	 }*/
+	    	                    int temp=min;
+	    	                    while(1){
+	    	                    	 em_uint8 datapwm[5];
+	    	                    		    	                    	    	    	    	    	em_uint32 on=0;
+	    	                    		    	                    	    	    	    	    	em_uint32 off=temp;
+	    	                    		    	                    	    	    	    	    	datapwm[0]=LED0_ON_L;
+	    	                    		    	                    	    	    	    	    	datapwm[1]=on;// & 0xFF;
+	    	                    		    	                    	    	    	    	    	datapwm[2]=(on>>8);//& 0xf;
+	    	                    		    	                    	    	    	    	    	datapwm[3]=off ;//& 0xFF;
+	    	                    		    	                    	    	    	    	    	datapwm[4]=(off >>8);//& 0xf;
+	    	                    		    	                    	    	    	    	    	 if(em_io_i2c_write(EM_USE_BSC1,slave,datapwm,5)){
+	    	                    		    	                    	    	    	    	    		    	    			em_log(EM_LOG_FATAL,0,"pwm write error\n");
+	    	                    		    	                    	    	    	    	    		    	    						return 1;
+	    	                    		    	                    	    	    	    	    	 }
+
+	    	                    		    	                    	    	    	    	    	 em_log(EM_LOG_FATAL,0,"%u\n",temp);
+	    	                    		    	                    	    	    	    	    	int get= getchar();
+	    	                    		    	                    	    	    	    	    	if(get=='a')
+	    	                    		    	                    	    	    	    	    		temp++;
+	    	                    		    	                    	    	    	    	    	else if(get=='z')temp--;
+
+
+	    	                    }
+
+
+	    	   /* while(1){
+	    	    em_uint32 i;
+	    	    em_uint8 datapwm[5];
+	    	    for(i=-5000;i<=5000;++i){
+	    	    	//getchar();
+	    	    	em_uint32 on=0;//4095-i;
+	    	    	em_uint32 off=4095*(i+5000)/5000.0f;
+	    	    	datapwm[0]=LED0_ON_L;
+	    	    	datapwm[1]=on;// & 0xFF;
+	    	    	datapwm[2]=(on>>8);//& 0xf;
+	    	    	datapwm[3]=off ;//& 0xFF;
+	    	    	datapwm[4]=(off >>8);//& 0xf;
+	    	    	 if(em_io_i2c_write(EM_USE_BSC1,slave,datapwm,5)){
+	    	    		    	    			em_log(EM_LOG_FATAL,0,"pwm write error\n");
+	    	    		    	    						return 1;
+	    	    		    	    }
+	    	    	 //break;
+	    	    	 em_io_delay_microseconds(10000);
+
+	    	    	 em_log(EM_LOG_FATAL,0,"pwm is %u\n",i);
+	    	    }
+	    	    }*/
+
+
+
+
+
+
+
+}
 
 
 int main(void) {
-	test_i2c();
+	test_pca9685_pwm_driver();
 
 
   return 0;

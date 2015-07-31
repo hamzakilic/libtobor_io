@@ -87,6 +87,10 @@ em_uint32 em_io_initialize(em_uint32 system){
     current_board.uart_write=em_raspi_uart_write;
     current_board.pwm_start=em_raspi_pwm_start;
     current_board.pwm_write=em_raspi_pwm_write;
+    current_board.i2c_start=em_raspi_i2c_start;
+    current_board.i2c_read=em_raspi_i2c_read;
+    current_board.i2c_write=em_raspi_i2c_write;
+    current_board.i2c_stop=em_raspi_i2c_stop;
 
     current_board.test=em_raspi_test;
     return current_board.initialize(system);
@@ -135,6 +139,23 @@ em_uint32 em_io_mini_uart_write(em_uint8 data){
 em_uint32 em_io_mini_uart_read(em_uint8 *data){
 	return current_board.mini_uart_read(data);
 }
+
+em_uint32 em_io_uart_start(em_uint32 options,em_uint32 baudrate){
+	return current_board.uart_start(options,baudrate);
+}
+em_uint32 em_io_uart_stop(){
+	return current_board.uart_stop();
+
+}
+em_uint32 em_io_uart_write(em_uint8 data){
+	return current_board.uart_write(data);
+
+}
+em_uint32 em_io_uart_read(em_uint8 *data){
+	return current_board.uart_read(data);
+}
+
+
 
 em_uint32 em_io_pwm_start(em_uint32 channel, em_uint32 options,em_uint32 range,em_uint16 divi,em_uint16 divif){
 	return current_board.pwm_start(channel,options,range,divi,divif);
