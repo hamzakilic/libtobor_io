@@ -21,13 +21,23 @@ int test_all_pins(){
 	em_log(EM_LOG_INFO,0,"hadi bakalım\n");
 	  if(em_io_initialize(0))
 		  return 1;
+	  printf("initialized\n");
 	int i=0;
 	for(i=0;i<17;++i)
 	{
+		//em_io_gpio_pull(i,EM_PULL_OFF);
+		printf("%d out\n",i);
+		//em_io_delay_microseconds(100000);
 		 if(em_io_gpio_mode(i,EM_MODE_GPIO_OUT))
 			  return 1;
+
+		 printf("%d write\n",i);
+		 //em_io_delay_microseconds(100000);
 		 if(em_io_gpio_write(i,EM_GPIO_LOW))
 		 		   return 1;
+
+		 printf("%d write2\n",i);
+		// em_io_delay_microseconds(100000);
 	}
 
 
@@ -35,12 +45,12 @@ int test_all_pins(){
 	int total_spin=0;
 	//for(total_spin=0;total_spin<2;++total_spin)
 	for(i=0;i<17;++i){
-
+        printf("turning on %d\n",i);
 		if(em_io_gpio_write(i,EM_GPIO_HIGH))
 		   return 1;
-	   sleep(1);
-	   if(em_io_gpio_write(i,EM_GPIO_LOW))
-	   	   return 1;
+		// em_io_delay_microseconds(50000000);
+	  // if(em_io_gpio_write(i,EM_GPIO_LOW))
+	  // 	   return 1;
 
 
 	  }
@@ -169,9 +179,6 @@ em_uint32 test_events(){
 			    else
 			    	fprintf(stdout,"%d pin event not detected\n",i);
 			  }
-
-
-
 
 			for(i=0;i<17;++i)
 			{
@@ -385,9 +392,6 @@ int test_pca9685_pwm_driver(){
 		em_log(EM_LOG_FATAL,0,"frequency scale is %u\n",frequency_scale);
 
 
-
-
-
 		em_uint8 oldmod=0;
 		em_uint32 length=1;
 		em_uint8 data[]={PCA9685_MODE1};
@@ -575,7 +579,7 @@ getchar();
 
 
 int main(void) {
-	test_pca9685_pwm_driver();
+	test_all_pins();
 
 
   return 0;

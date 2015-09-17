@@ -225,9 +225,6 @@ em_uint32 em_raspi_gpio_mode(em_uint8 number, em_uint8 mode) {
 
 
 
-
-
-
 	return EM_SUCCESS;
 }
 
@@ -259,15 +256,15 @@ em_uint32 em_raspi_gpio_write(em_uint8 number, em_uint8 val) {
 #endif
 	number = pin_maps[number];
 	if (val & EM_GPIO_HIGH) {
+
        volatile em_uint32 *address=gpio + PERIPHERALS_GPIO_OUTPUT_PHYSICAL + PIN_WRITE_POSITION(number);
-       em_uint32 address_value=arm_read(address);
-	   arm_write(address, address_value | (1 << PIN_WRITE_SHIFT(number)));
+       arm_write(address,  (1 << PIN_WRITE_SHIFT(number)));
 
 	} else if (val & EM_GPIO_LOW) {
 
 		volatile em_uint32 *address=gpio + PERIPHERALS_GPIO_CLEAR_PHYSICAL + PIN_WRITE_POSITION(number);
-		       em_uint32 address_value=arm_read(address);
-			   arm_write(address, address_value | (1 << PIN_WRITE_SHIFT(number)));
+	       arm_write(address,  (1 << PIN_WRITE_SHIFT(number)));
+
 
 
 	}
@@ -1194,32 +1191,21 @@ em_uint32 em_raspi_i2c_read(em_uint8 channel,em_uint16 address,em_uint8 *data,em
 	    arm_write(address_fifo,write_data[0]);
 	    arm_write(address_control,(0x1<<7)|(0x1<<15));
 	    //em_io_delay_loops(wait_one_byte_transfer_clock);
-
-
-
-
 	    em_uint32 index=1;
 	    while(1){
 	    	em_uint32 stat=arm_read(address_status);
-
 	    	if(stat & (0x1<<1)){//transfer done
 	    		//em_log(EM_LOG_INFO,0,"write transfer done \n");
 	    		break;
 	    	}
-
 	    	while((index < write_data_lenght) &&  (stat & (0x1<<4)))//txd fifo can accept data
 	    	{
-
 	          *address_fifo=write_data[index++];
 	          //em_io_delay_loops(wait_one_byte_transfer_clock*10000);
-
 	    	}
-
 	    }
-
 	    //em_io_delay_loops(100000000);
 	    	em_uint32 stat=arm_read(address_status);
-
 	    	    	if(stat & ( (0x1<<8) | (0x1 <<9)) ){
 	    	    		em_log(EM_LOG_INFO,0,"write stat error is %u\n",stat);
 	    	    		return EM_ERROR_IO_WRITE;
@@ -1229,15 +1215,9 @@ em_uint32 em_raspi_i2c_read(em_uint8 channel,em_uint16 address,em_uint8 *data,em
 	    	    		return EM_ERROR_IO_WRITE;
 	    	    	}
 	    	    	arm_write(address_length,*read_data_lenght);
-
-
 	    	    	    arm_write(address_control,(0x1<<7) | (0x1<<15) | (0x01));
-
-
 	    	    	    index=0;
 	    	    	    while(1){
-
-
 	    	    	    	while(arm_read(address_status) & (0x1<<5)){
 	    	    	    		if(index<*read_data_lenght)
 	    	    	        read_data[index]= arm_read(address_fifo);
@@ -1249,22 +1229,17 @@ em_uint32 em_raspi_i2c_read(em_uint8 channel,em_uint16 address,em_uint8 *data,em
 	    	    	    		break;
 	    	    	    }
 	    	    	    stat=arm_read(address_status);
-
 	    	    	        	    	if(stat & ( (0x1<<8) | (0x1 <<9)) ){
 	    	    	        	    		em_log(EM_LOG_INFO,0,"read stat error is %u\n",stat);
 	    	    	        	    		*read_data_lenght=index;
 	    	    	        	    		return EM_ERROR_IO_READ;
 	    	    	        	    	}
-
 	    	    	        	    	if(index>*read_data_lenght){
 	    	    	        	    		em_log(EM_LOG_INFO,0,"read stat index  is %u\n",index);
 	    	    	        	    		*read_data_lenght=index;
 	    	    	        	    		return EM_ERROR_IO_READ;
 	    	    	        	    	}
 	    	    	        	    	*read_data_lenght=index;
-
-
-
 	    return EM_SUCCESS;
 }*/
 
@@ -1290,7 +1265,6 @@ em_uint32 em_raspi_test(){
 
 	return EM_SUCCESS;
 }
-
 
 
 
