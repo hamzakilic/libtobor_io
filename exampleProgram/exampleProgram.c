@@ -23,7 +23,7 @@ int test_all_pins(){
 		  return 1;
 	  printf("initialized\n");
 	int i=0;
-	for(i=0;i<17;++i)
+	for(i=5;i<=8;++i)
 	{
 		//em_io_gpio_pull(i,EM_PULL_OFF);
 		printf("%d out\n",i);
@@ -44,7 +44,7 @@ int test_all_pins(){
 	i=0;
 	int total_spin=0;
 	//for(total_spin=0;total_spin<2;++total_spin)
-	for(i=0;i<17;++i){
+	for(i=5;i<=8;++i){
         printf("turning on %d\n",i);
 		if(em_io_gpio_write(i,EM_GPIO_HIGH))
 		   return 1;
@@ -374,7 +374,7 @@ int test_pca9685_pwm_driver(){
 #define PCA9685_MODE1 0x0
 #define PCA9685_PRESCALE 0xFE
 
-#define LED0_ON_L 0x6
+#define LED0_ON_L 0x6+5*4
 #define LED0_ON_H 0x7
 #define LED0_OFF_L 0x8
 #define LED0_OFF_H 0x9
@@ -394,7 +394,7 @@ int test_pca9685_pwm_driver(){
 
 		em_uint8 oldmod=0;
 		em_uint32 length=1;
-		em_uint8 data[]={PCA9685_MODE1};
+		em_uint8 data[]={49};
 		if(em_io_i2c_write(EM_USE_BSC1,slave,data,length)){
 					em_log(EM_LOG_FATAL,0,"mod write error\n");
 								return 1;
@@ -404,36 +404,28 @@ int test_pca9685_pwm_driver(){
 			return 1;
 		}
 		em_log(EM_LOG_FATAL,0,"old mode is %u\n",oldmod);
-		em_uint8 newMode=(oldmod &0x7F) |0x10;//sleep
+		/*em_uint8 newMode=(oldmod &0x7F) |0x10;//sleep
 		em_uint8 data2[2]={PCA9685_MODE1,newMode};
 		if(em_io_i2c_write(EM_USE_BSC1,slave,data2,2)){
 			em_log(EM_LOG_FATAL,0,"mod write error1\n");
 						return 1;
-		}
+		}*/
+		em_uint8 data2[2]={0,0};
 		data2[0]=PCA9685_PRESCALE;
 		data2[1]=frequency_scale;
 		if(em_io_i2c_write(EM_USE_BSC1,slave,data2,2)){
 					em_log(EM_LOG_FATAL,0,"frequency write error\n");
 								return 1;
 				}
+		em_io_delay_loops(5000);
 		data2[0]=PCA9685_MODE1;
-	    data2[1]=oldmod;
+	    data2[1]=0xa1;
 	    if(em_io_i2c_write(EM_USE_BSC1,slave,data2,2)){
 	    			em_log(EM_LOG_FATAL,0,"mod write error3\n");
 	    						return 1;
 	    }
 	    em_io_delay_loops(5000);
-	    data2[0]=PCA9685_MODE1;
-	    	    data2[1]=oldmod|0xa1;
-	    	    if(em_io_i2c_write(EM_USE_BSC1,slave,data2,2)){
-	    	    			em_log(EM_LOG_FATAL,0,"mod write error4\n");
-	    	    						return 1;
-	    	    }
 
-	    	    if(em_io_i2c_write(EM_USE_BSC1,slave,data,1)){
-	    	    					em_log(EM_LOG_FATAL,0,"mod write error\n");
-	    	    								return 1;
-	    	    				}
 	    	    		if(em_io_i2c_read(EM_USE_BSC1,slave,&oldmod,&length)){
 	    	    			em_log(EM_LOG_FATAL,0,"mod read error\n");
 	    	    			return 1;
@@ -458,7 +450,7 @@ int test_pca9685_pwm_driver(){
 	    	    			    	    	    	    	 }
 	    	    			    		    	    			em_log(EM_LOG_INFO,0,"open motor\n");
 	    	    			    		    	    			getchar();
-	    	    			    		    	    			em_io_delay_microseconds(2000000);
+	    	    			    		    	    			em_io_delay_microseconds(3000000);
 	    	    			    		    	    			off=min;
 	    	    			    		    	    			datapwm[0]=LED0_ON_L;
 	    	    			    		    	    				    	    			    	    	    	    	datapwm[1]=on;// & 0xFF;
@@ -537,10 +529,12 @@ getchar();
 	    	                    		    	                    	    	    	    	    	 }
 
 	    	                    		    	                    	    	    	    	    	 em_log(EM_LOG_FATAL,0,"%u\n",temp);
+	    	                    		    	                    	    	    	    	    	 //temp++;
 	    	                    		    	                    	    	    	    	    	int get= getchar();
 	    	                    		    	                    	    	    	    	    	if(get=='a')
 	    	                    		    	                    	    	    	    	    		temp++;
 	    	                    		    	                    	    	    	    	    	else if(get=='z')temp--;
+	    	                    		    	                    	    	    	    	    	 //em_io_delay_microseconds(1000000);
 
 
 	    	                    }
@@ -579,7 +573,7 @@ getchar();
 
 
 int main(void) {
-	test_all_pins();
+	test_pca9685_pwm_driver();
 
 
   return 0;
