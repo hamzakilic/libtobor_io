@@ -495,66 +495,66 @@ return EM_SUCCESS;
 
 
 
-static em_uint32 em_raspi_mini_uart_extra_status(){
+/*static em_uint32 em_raspi_mini_uart_extra_status(){
 	volatile em_uint32 * address=mini_uart+PERIPHERALS_MINI_UART_EXTRA_STATUS_PHYSICAL;
 	em_uint32 val=arm_read(address);
 	em_log(EM_LOG_INFO,0,"mini_uart extra status %u\n",val);
 
 	if(val & 0x00000001)
-			em_log(EM_LOG_INFO,0,"receiver fifo can not accept\n");
-		else em_log(EM_LOG_INFO,0,"receiver fifo can  accept\n");
+			em_log(EM_LOG_INFO,0,"mini uart receiver fifo can not accept\n");
+		else em_log(EM_LOG_INFO,0,"mini uart receiver fifo can  accept\n");
 
 	if(val & 0x00000002)
-		em_log(EM_LOG_INFO,0,"transmitter fifo can  accept\n");
-	else em_log(EM_LOG_INFO,0,"transmitter fifo can not  accept\n");
+		em_log(EM_LOG_INFO,0,"mini uart transmitter fifo can  accept\n");
+	else em_log(EM_LOG_INFO,0,"mini uart transmitter fifo can not  accept\n");
 
 	if(val & 0x00000004)
-			em_log(EM_LOG_INFO,0,"receiver is idle\n");
-		else em_log(EM_LOG_INFO,0,"receiver is not idle\n");
+			em_log(EM_LOG_INFO,0,"mini uart receiver is idle\n");
+		else em_log(EM_LOG_INFO,0,"mini uart receiver is not idle\n");
 	if(val & 0x00000008)
-				em_log(EM_LOG_INFO,0,"transmitter is idle\n");
-			else em_log(EM_LOG_INFO,0,"transmitter is not idle\n");
+				em_log(EM_LOG_INFO,0,"mini uart transmitter is idle\n");
+			else em_log(EM_LOG_INFO,0,"mini uart transmitter is not idle\n");
 
 	if(val & 0x00000010)
-		em_log(EM_LOG_INFO,0,"receiver is overrrun\n");
-	else em_log(EM_LOG_INFO,0,"receiver is not overrun\n");
+		em_log(EM_LOG_INFO,0,"mini uart receiver is overrrun\n");
+	else em_log(EM_LOG_INFO,0,"mini uart receiver is not overrun\n");
 
 	if(val & 0x00000020)
-			em_log(EM_LOG_INFO,0,"transmit fifo is full\n");
-		else em_log(EM_LOG_INFO,0,"transmit fifo is not full\n");
+			em_log(EM_LOG_INFO,0,"mini uart transmit fifo is full\n");
+		else em_log(EM_LOG_INFO,0,"mini uart transmit fifo is not full\n");
 
 	if(val & 0x00000040)
-				em_log(EM_LOG_INFO,0,"rts is 1\n");
-			else em_log(EM_LOG_INFO,0,"rts is 0\n");
+				em_log(EM_LOG_INFO,0,"mini uart rts is 1\n");
+			else em_log(EM_LOG_INFO,0,"mini uart rts is 0\n");
 
 	if(val & 0x00000080)
-					em_log(EM_LOG_INFO,0,"cts is 1\n");
-				else em_log(EM_LOG_INFO,0,"cts is 0\n");
+					em_log(EM_LOG_INFO,0,"mini uart cts is 1\n");
+				else em_log(EM_LOG_INFO,0,"mini uart cts is 0\n");
 
 	if(val & 0x00000100)
-		em_log(EM_LOG_INFO,0,"transmit fifo is empty\n");
-		else em_log(EM_LOG_INFO,0,"transmit fifo is not empty\n");
+		em_log(EM_LOG_INFO,0,"mini uart transmit fifo is empty\n");
+		else em_log(EM_LOG_INFO,0,"mini uart transmit fifo is not empty\n");
 
 	if(val & 0x00000200)
-			em_log(EM_LOG_INFO,0,"transmitter done\n");
-			else em_log(EM_LOG_INFO,0,"transmit is not done\n");
+			em_log(EM_LOG_INFO,0,"mini uart transmitter done\n");
+			else em_log(EM_LOG_INFO,0,"mini uart transmit is not done\n");
 
 	em_uint32 val_temp = (val << 12)>>28;
-	em_log(EM_LOG_INFO,0,"receive fifo level %u\n",val_temp);
+	em_log(EM_LOG_INFO,0,"mini uart receive fifo level %u\n",val_temp);
 
 	val_temp = (val << 4)>>28;
-	em_log(EM_LOG_INFO,0,"transmit fifo level %u\n",val_temp);
+	em_log(EM_LOG_INFO,0,"mini uart transmit fifo level %u\n",val_temp);
 
 
 
 	volatile em_uint32 * address_baudrate=mini_uart+PERIPHERALS_MINI_UART_BAUDRATE_PHYSICAL;
 		em_uint32 val_baudrate=arm_read(address_baudrate);
-		em_log(EM_LOG_INFO,0,"baudreate is: %u\n",val_baudrate);
+		em_log(EM_LOG_INFO,0,"mini uart baudreate is: %u\n",val_baudrate);
 		val_baudrate &=0x0000FFFF;
-		em_log(EM_LOG_INFO,0,"baudreate is: %u\n",val_baudrate);
+		em_log(EM_LOG_INFO,0,"mini uart baudreate is: %u\n",val_baudrate);
    return EM_SUCCESS;
 
-}
+}*/
 
 em_uint32 em_raspi_mini_uart_start(em_uint32 options,em_uint32 baudrate,em_uint32 clock_frequency_mhz){
 
@@ -1046,12 +1046,10 @@ em_uint32 em_raspi_i2c_start(em_uint8 channel,em_uint16 divider,em_uint16 timeou
 		else return EM_ERROR_NOT_IMPLEMENTED;
 
 
-
-
   return EM_SUCCESS;
 }
 
-em_uint32 em_raspi_i2c_write(em_uint8 channel,em_uint16 address,const em_uint8 * const data,em_uint32 data_lenght){
+em_uint32 em_raspi_i2c_write(em_uint8 channel,em_uint16 address,const em_uint8 * const data,em_uint32 data_lenght,em_uint32 timeout){
 
 	if(channel & EM_USE_BSC0)
 			{
@@ -1077,13 +1075,22 @@ em_uint32 em_raspi_i2c_write(em_uint8 channel,em_uint16 address,const em_uint8 *
 
 
     em_uint32 index=1;
+    em_uint32 current_time=time_as_microseconds();
+    em_uint32 end_time=current_time+timeout;
     while(1){
+
+
+
+
     	em_uint32 stat=arm_read(address_status);
 
-    	if(stat & (0x1<<1)){//transfer done
+    	if((stat & (0x1<<1)) && (index>=data_lenght)){//transfer done
     		//em_log(EM_LOG_INFO,0,"write transfer done \n");
     		break;
     	}
+
+    	if(time_as_microseconds()>end_time)
+    	    return EM_ERROR_IO_TIMEOUT;
 
     	while((index < data_lenght) &&  (stat & (0x1<<4)))//txd fifo can accept data
     	{
@@ -1093,17 +1100,18 @@ em_uint32 em_raspi_i2c_write(em_uint8 channel,em_uint16 address,const em_uint8 *
 
     	}
 
+
     }
 
     //em_io_delay_loops(100000000);
     	em_uint32 stat=arm_read(address_status);
 
     	    	if(stat & ( (0x1<<8) | (0x1 <<9)) ){
-    	    		em_log(EM_LOG_INFO,0,"write stat error is %u\n",stat);
+    	    		em_log(EM_LOG_INFO,0,"i2c write stat error is %u\n",stat);
     	    		return EM_ERROR_IO_WRITE;
     	    	}
     	    	if(index<data_lenght){
-    	    		em_log(EM_LOG_INFO,0,"write stat index  is %u\n",index);
+    	    		em_log(EM_LOG_INFO,0,"i2c write stat index  is %u\n",index);
     	    		return EM_ERROR_IO_WRITE;
     	    	}
 
@@ -1113,7 +1121,7 @@ em_uint32 em_raspi_i2c_write(em_uint8 channel,em_uint16 address,const em_uint8 *
 
 }
 
-em_uint32 em_raspi_i2c_read(em_uint8 channel,em_uint16 address,em_uint8 *data,em_uint32 *data_lenght){
+em_uint32 em_raspi_i2c_read(em_uint8 channel,em_uint16 address,em_uint8 *data,em_uint32 data_lenght,em_uint32 timeout){
 
 	if(channel & EM_USE_BSC0)
 			{
@@ -1125,7 +1133,7 @@ em_uint32 em_raspi_i2c_read(em_uint8 channel,em_uint16 address,em_uint8 *data,em
     volatile * address_slave=bsc1+PERIPHERALS_BSC_SLAVE_ADDRESS_PHYSICAL;
     volatile * address_fifo=bsc1+PERIPHERALS_BSC_DATA_FIFO_PHYSICAL;
 
-    arm_write(address_length,*data_lenght);
+    arm_write(address_length,data_lenght);
 
     arm_write(address_control, (0x1<<4));//clear fifo
 
@@ -1137,7 +1145,7 @@ em_uint32 em_raspi_i2c_read(em_uint8 channel,em_uint16 address,em_uint8 *data,em
 
 
     em_uint32 index=0;
-    while(1){
+    /*while(1){
 
 
     	while(arm_read(address_status) & (0x1<<5)){
@@ -1149,21 +1157,43 @@ em_uint32 em_raspi_i2c_read(em_uint8 channel,em_uint16 address,em_uint8 *data,em
     	em_uint32 stat=arm_read(address_status);
     	if(stat & (0x1<<1))//transfer done
     		break;
-    }
+    }*/
+    em_uint32 current_time=time_as_microseconds();
+      em_uint32 end_time=current_time+timeout;
+    while(1){
+
+     	if(arm_read(address_status) & (0x1<<5)){
+     		if(index<data_lenght){
+            data[index]= arm_read(address_fifo);
+            index++;
+     		}
+
+     	}
+     	if(index==data_lenght){
+     	//em_uint32 stat=arm_read(address_status);
+     	//if(stat & (0x1<<1))//transfer done
+     		break;
+     	}
+     	if(time_as_microseconds()>end_time)
+     	  return EM_ERROR_IO_TIMEOUT;
+
+
+     }
+
     em_uint32 stat=arm_read(address_status);
 
         	    	if(stat & ( (0x1<<8) | (0x1 <<9)) ){
-        	    		em_log(EM_LOG_INFO,0,"read stat error is %u\n",stat);
-        	    		*data_lenght=index;
+        	    		em_log(EM_LOG_INFO,0,"i2c read stat error is %u\n",stat);
+        	    		data_lenght=index;
         	    		return EM_ERROR_IO_READ;
         	    	}
 
-        	    	if(index>*data_lenght){
-        	    		em_log(EM_LOG_INFO,0,"read stat index  is %u\n",index);
-        	    		*data_lenght=index;
+        	    	if(index>data_lenght){
+        	    		em_log(EM_LOG_INFO,0,"i2c read stat index  is %u\n",index);
+        	    		data_lenght=index;
         	    		return EM_ERROR_IO_READ;
         	    	}
-        	    	*data_lenght=index;
+        	    	data_lenght=index;
 
     return EM_SUCCESS;
 
@@ -1251,6 +1281,7 @@ em_uint32 em_raspi_i2c_stop(em_uint8 channel){
 		address=(bsc1+PERIPHERALS_BSC_CONTROL_PHYSICAL);
 	else return EM_ERROR_NOT_IMPLEMENTED;
 	arm_write(address,0);
+
 	return EM_SUCCESS;
 }
 

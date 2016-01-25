@@ -21,6 +21,12 @@ void em_io_delay_microseconds (em_uint32 micro_seconds)
 
 }
 
+inline em_uint32 time_as_microseconds(){
+	struct timeval tv;
+	    gettimeofday(&tv,0);
+	    return 1000000 * tv.tv_sec + tv.tv_usec;
+}
+
 inline void em_io_delay_loops(em_uint32 count){
 	asm volatile("__delay_%=: subs %[count], %[count], #1; bne __delay_%=\n"
 			 : : [count]"r"(count) : "cc");

@@ -51,8 +51,8 @@ extern em_uint32 em_io_pwm_start(em_uint32 channel, em_uint32 options,em_uint32 
 extern em_uint32 em_io_pwm_write(em_uint32 channel,em_uint32 data);
 extern em_uint32 em_io_i2c_start(em_uint8 channel,em_uint16 divider,em_uint16 timeout);
 extern em_uint32 em_io_i2c_stop(em_uint8 channel);
-extern em_uint32 em_io_i2c_write(em_uint8 channel,em_uint16 address,const em_uint8 * const data,em_uint32 data_lenght);
-extern em_uint32 em_io_i2c_read(em_uint8 channel,em_uint16 address,em_uint8 *data,em_uint32 *data_lenght);
+extern em_uint32 em_io_i2c_write(em_uint8 channel,em_uint16 address,const em_uint8 * const data,em_uint32 data_lenght,em_uint32 timeout);
+extern em_uint32 em_io_i2c_read(em_uint8 channel,em_uint16 address,em_uint8 *data,em_uint32 data_lenght,em_uint32 timeout);
 
 extern em_uint32 em_io_test();
 

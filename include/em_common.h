@@ -10,6 +10,7 @@
 
 #include "em_types.h"
 #include <time.h>
+#include <sys/time.h>
 
 
 #define EM_DEBUG
@@ -78,7 +79,8 @@
 
 
 
-
+#define EM_TIMEOUT_ONE_SECOND 0xF4240
+#define EM_TIMEOUT_HALF_SECOND 0x7A120
 
 
 
@@ -87,6 +89,7 @@
 
 void em_io_delay_microseconds (em_uint32 micro_seconds);
 inline void em_io_delay_loops(em_uint32 count);
+inline em_uint32 time_as_microseconds();
 
 enum
 {

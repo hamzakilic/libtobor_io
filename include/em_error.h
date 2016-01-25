@@ -21,5 +21,6 @@
 #define EM_ERROR_IO_WRITE 8
 #define EM_ERROR_IO_READ 9
 #define EM_ERROR_NOT_IMPLEMENTED 10
+#define EM_ERROR_IO_TIMEOUT 11
 
 #endif /* EM_ERROR_H_ */

@@ -29,8 +29,8 @@ typedef em_uint32 (*pwm_start_func)(em_uint32 ,em_uint32 ,em_uint32 ,em_uint16 ,
 typedef em_uint32 (*pwm_write_func)(em_uint32,em_uint32);
 typedef em_uint32 (*i2c_start_func)(em_uint8 channel,em_uint16 divider,em_uint16 timeout);
 typedef em_uint32 (*i2c_stop_func)(em_uint8 channel);
-typedef em_uint32 (*i2c_write_func)(em_uint8 channel,em_uint16 address,const em_uint8 * const data,em_uint32 data_lenght);
-typedef em_uint32 (*i2c_read_func)(em_uint8 channel,em_uint16 address,em_uint8 *data,em_uint32 *data_lenght);
+typedef em_uint32 (*i2c_write_func)(em_uint8 channel,em_uint16 address,const em_uint8 * const data,em_uint32 data_lenght,em_uint32 timeout);
+typedef em_uint32 (*i2c_read_func)(em_uint8 channel,em_uint16 address,em_uint8 *data,em_uint32 data_lenght,em_uint32 timeout);
 
 typedef struct {
 
@@ -170,12 +170,12 @@ em_uint32 em_io_i2c_start(em_uint8 channel,em_uint16 divider,em_uint16 timeout){
 em_uint32 em_io_i2c_stop(em_uint8 channel){
 	return current_board.i2c_stop(channel);
 }
-em_uint32 em_io_i2c_write(em_uint8 channel,em_uint16 address,const em_uint8 * const data,em_uint32 data_lenght){
-	return current_board.i2c_write(channel,address,data,data_lenght);
+em_uint32 em_io_i2c_write(em_uint8 channel,em_uint16 address,const em_uint8 * const data,em_uint32 data_lenght,em_uint32 timeout){
+	return current_board.i2c_write(channel,address,data,data_lenght,timeout);
 
 }
-em_uint32 em_io_i2c_read(em_uint8 channel,em_uint16 address,em_uint8 *data,em_uint32 *data_lenght){
-   return current_board.i2c_read(channel,address,data,data_lenght);
+em_uint32 em_io_i2c_read(em_uint8 channel,em_uint16 address,em_uint8 *data,em_uint32 data_lenght,em_uint32 timeout){
+   return current_board.i2c_read(channel,address,data,data_lenght,timeout);
 }
 
 

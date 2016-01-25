@@ -329,13 +329,13 @@ int test_i2c(){
 
 	    em_uint8 data[]={s,s};
 
-	    if(em_raspi_i2c_write(EM_USE_BSC1,slave,data,2)){
+	    if(em_raspi_i2c_write(EM_USE_BSC1,slave,data,2,EM_TIMEOUT_ONE_SECOND)){
 	   	em_log(EM_LOG_INFO,0,"birinci yazilamadi\n");
 	   	break;
 	    }else em_log(EM_LOG_INFO,0,"birinci yazildi \n");
 	    em_io_busy_wait(0.001*1000000);
 
-		if(em_raspi_i2c_write(EM_USE_BSC1,slave,data,1)){
+		if(em_raspi_i2c_write(EM_USE_BSC1,slave,data,1,EM_TIMEOUT_ONE_SECOND)){
 		   	em_log(EM_LOG_INFO,0,"ikinci yazilamadi\n");
 		    	break;
 		}else{
@@ -345,7 +345,7 @@ int test_i2c(){
 		em_uint8 data2[]={0x0,0};
 		em_uint32 lenght=1;
 
-		if(em_raspi_i2c_read(EM_USE_BSC1,slave,data2,&lenght)){
+		if(em_raspi_i2c_read(EM_USE_BSC1,slave,data2,lenght,EM_TIMEOUT_ONE_SECOND)){
 			em_log(EM_LOG_INFO,0,"okunamadı\n");
 			break;
 		}
@@ -395,11 +395,11 @@ int test_pca9685_pwm_driver(){
 		em_uint8 oldmod=0;
 		em_uint32 length=1;
 		em_uint8 data[]={49};
-		if(em_io_i2c_write(EM_USE_BSC1,slave,data,length)){
+		if(em_io_i2c_write(EM_USE_BSC1,slave,data,length,EM_TIMEOUT_ONE_SECOND)){
 					em_log(EM_LOG_FATAL,0,"mod write error\n");
 								return 1;
 				}
-		if(em_io_i2c_read(EM_USE_BSC1,slave,&oldmod,&length)){
+		if(em_io_i2c_read(EM_USE_BSC1,slave,&oldmod,length,EM_TIMEOUT_ONE_SECOND)){
 			em_log(EM_LOG_FATAL,0,"mod read error\n");
 			return 1;
 		}
@@ -413,20 +413,20 @@ int test_pca9685_pwm_driver(){
 		em_uint8 data2[2]={0,0};
 		data2[0]=PCA9685_PRESCALE;
 		data2[1]=frequency_scale;
-		if(em_io_i2c_write(EM_USE_BSC1,slave,data2,2)){
+		if(em_io_i2c_write(EM_USE_BSC1,slave,data2,2,EM_TIMEOUT_ONE_SECOND)){
 					em_log(EM_LOG_FATAL,0,"frequency write error\n");
 								return 1;
 				}
 		em_io_delay_loops(5000);
 		data2[0]=PCA9685_MODE1;
 	    data2[1]=0xa1;
-	    if(em_io_i2c_write(EM_USE_BSC1,slave,data2,2)){
+	    if(em_io_i2c_write(EM_USE_BSC1,slave,data2,2,EM_TIMEOUT_ONE_SECOND)){
 	    			em_log(EM_LOG_FATAL,0,"mod write error3\n");
 	    						return 1;
 	    }
 	    em_io_delay_loops(5000);
 
-	    	    		if(em_io_i2c_read(EM_USE_BSC1,slave,&oldmod,&length)){
+	    	    		if(em_io_i2c_read(EM_USE_BSC1,slave,&oldmod,length,EM_TIMEOUT_ONE_SECOND)){
 	    	    			em_log(EM_LOG_FATAL,0,"mod read error\n");
 	    	    			return 1;
 	    	    		}
@@ -444,7 +444,7 @@ int test_pca9685_pwm_driver(){
 	    	    			    	    	    	    	datapwm[2]=(on>>8);//& 0xf;
 	    	    			    	    	    	    	datapwm[3]=off ;//& 0xFF;
 	    	    			    	    	    	    	datapwm[4]=(off >>8);//& 0xf;
-	    	    			    	    	    	    	 if(em_io_i2c_write(EM_USE_BSC1,slave,datapwm,5)){
+	    	    			    	    	    	    	 if(em_io_i2c_write(EM_USE_BSC1,slave,datapwm,5,EM_TIMEOUT_ONE_SECOND)){
 	    	    			    	    	    	    		    	    			em_log(EM_LOG_FATAL,0,"pwm write error\n");
 	    	    			    	    	    	    		    	    						return 1;
 	    	    			    	    	    	    	 }
@@ -457,7 +457,7 @@ int test_pca9685_pwm_driver(){
 	    	    			    		    	    				    	    			    	    	    	    	datapwm[2]=(on>>8);//& 0xf;
 	    	    			    		    	    				    	    			    	    	    	    	datapwm[3]=off ;//& 0xFF;
 	    	    			    		    	    				    	    			    	    	    	    	datapwm[4]=(off >>8);//& 0xf;
-	    	    			    		    	    				    	    			    	    	    	    	 if(em_io_i2c_write(EM_USE_BSC1,slave,datapwm,5)){
+	    	    			    		    	    				    	    			    	    	    	    	 if(em_io_i2c_write(EM_USE_BSC1,slave,datapwm,5,EM_TIMEOUT_ONE_SECOND)){
 	    	    			    		    	    				    	    			    	    	    	    		    	    			em_log(EM_LOG_FATAL,0,"pwm write error\n");
 	    	    			    		    	    				    	    			    	    	    	    		    	    						return 1;
 	    	    			    		    	    				    	    			    	    	    	    	 }
@@ -523,7 +523,7 @@ getchar();
 	    	                    		    	                    	    	    	    	    	datapwm[2]=(on>>8);//& 0xf;
 	    	                    		    	                    	    	    	    	    	datapwm[3]=off ;//& 0xFF;
 	    	                    		    	                    	    	    	    	    	datapwm[4]=(off >>8);//& 0xf;
-	    	                    		    	                    	    	    	    	    	 if(em_io_i2c_write(EM_USE_BSC1,slave,datapwm,5)){
+	    	                    		    	                    	    	    	    	    	 if(em_io_i2c_write(EM_USE_BSC1,slave,datapwm,5,EM_TIMEOUT_ONE_SECOND)){
 	    	                    		    	                    	    	    	    	    		    	    			em_log(EM_LOG_FATAL,0,"pwm write error\n");
 	    	                    		    	                    	    	    	    	    		    	    						return 1;
 	    	                    		    	                    	    	    	    	    	 }
@@ -573,7 +573,7 @@ getchar();
 
 
 int main(void) {
-	test_pca9685_pwm_driver();
+	test_uart();
 
 
   return 0;
