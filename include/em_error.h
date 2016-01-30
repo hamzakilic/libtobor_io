@@ -5,8 +5,8 @@
  *      Author: root
  */
 
-#ifndef EM_ERROR_H_
-#define EM_ERROR_H_
+#ifndef LIBTOBOR_IO2_INCLUDE_EM_ERROR_H_
+#define LIBTOBOR_IO2_INCLUDE_EM_ERROR_H_
 
 #define EM_SUCCESS 0
 
@@ -23,4 +23,4 @@
 #define EM_ERROR_NOT_IMPLEMENTED 10
 #define EM_ERROR_IO_TIMEOUT 11
 
-#endif /* EM_ERROR_H_ */
+#endif /* LIBTOBOR_IO2_INCLUDE_EM_ERROR_H_ */

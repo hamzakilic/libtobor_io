@@ -5,8 +5,8 @@
  *      Author: root
  */
 
-#ifndef EM_PIN_H_
-#define EM_PIN_H_
+#ifndef LIBTOBOR_IO2_INCLUDE_EM_PIN_H_
+#define LIBTOBOR_IO2_INCLUDE_EM_PIN_H_
 
 #include "em_types.h"
 
@@ -151,4 +151,4 @@
 
 
 
-#endif /* EM_PIN_H_ */
+#endif /* LIBTOBOR_IO2_INCLUDE_EM_PIN_H_ */

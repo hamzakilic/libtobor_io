@@ -5,8 +5,8 @@
  *      Author: root
  */
 
-#ifndef EM_TYPES_H_
-#define EM_TYPES_H_
+#ifndef LIBTOBOR_IO2_INCLUDE_EM_TYPES_H_
+#define LIBTOBOR_IO2_INCLUDE_EM_TYPES_H_
 
 typedef char em_int8;
 typedef unsigned char em_uint8;
@@ -32,4 +32,4 @@ typedef em_uint8 em_bool;
 
 
 
-#endif /* EM_TYPES_H_ */
+#endif /* LIBTOBOR_IO2_INCLUDE_EM_TYPES_H_ */

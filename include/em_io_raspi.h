@@ -5,8 +5,8 @@
  *      Author: root
  */
 
-#ifndef EM_IO_RASPI_H_
-#define EM_IO_RASPI_H_
+#ifndef LIBTOBOR_IO2_INCLUDE_EM_IO_RASPI_H_
+#define LIBTOBOR_IO2_INCLUDE_EM_IO_RASPI_H_
 
 #include <errno.h>
 #include <sys/stat.h>
@@ -59,4 +59,4 @@ em_uint32 em_raspi_test();
 
 
 
-#endif /* EM_IO_RASPI_H_ */
+#endif /* LIBTOBOR_IO2_INCLUDE_EM_IO_RASPI_H_ */

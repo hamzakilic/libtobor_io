@@ -1089,8 +1089,10 @@ em_uint32 em_raspi_i2c_write(em_uint8 channel,em_uint16 address,const em_uint8 *
     		break;
     	}
 
-    	if(time_as_microseconds()>end_time)
+    	if(time_as_microseconds()>end_time){
+    		em_log(EM_LOG_INFO,0,"i2c write timeout error \n");
     	    return EM_ERROR_IO_TIMEOUT;
+    	}
 
     	while((index < data_lenght) &&  (stat & (0x1<<4)))//txd fifo can accept data
     	{
@@ -1174,8 +1176,10 @@ em_uint32 em_raspi_i2c_read(em_uint8 channel,em_uint16 address,em_uint8 *data,em
      	//if(stat & (0x1<<1))//transfer done
      		break;
      	}
-     	if(time_as_microseconds()>end_time)
-     	  return EM_ERROR_IO_TIMEOUT;
+     	if(time_as_microseconds()>end_time){
+    		em_log(EM_LOG_INFO,0,"i2c read timeout error \n");
+     		return EM_ERROR_IO_TIMEOUT;
+     	}
 
 
      }

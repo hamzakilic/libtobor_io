@@ -5,8 +5,8 @@
  *      Author: root
  */
 
-#ifndef EM_LOG_H_
-#define EM_LOG_H_
+#ifndef LIBTOBOR_IO2_INCLUDE_EM_LOG_H_
+#define LIBTOBOR_IO2_INCLUDE_EM_LOG_H_
 
 #include <string.h>
 #include <stdio.h>
@@ -24,4 +24,4 @@
 void em_log(em_uint8 log_type,em_int32 system_err, const char * fmt,...);
 
 
-#endif /* EM_LOG_H_ */
+#endif /* LIBTOBOR_IO2_INCLUDE_EM_LOG_H_ */

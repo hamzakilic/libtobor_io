@@ -6,8 +6,8 @@
  *  Author: Hamza Kılıç
  */
 
-#ifndef EM_IO_H_
-#define EM_IO_H_
+#ifndef LIBTOBOR_IO2_INCLUDE_EM_IO_H_
+#define LIBTOBOR_IO2_INCLUDE_EM_IO_H_
 
 #include "em_common.h"
 #include "em_error.h"
@@ -62,4 +62,4 @@ extern em_uint32 em_io_test();
 
 
 
-#endif /* EM_IO_H_ */
+#endif /* LIBTOBOR_IO2_INCLUDE_EM_IO_H_ */

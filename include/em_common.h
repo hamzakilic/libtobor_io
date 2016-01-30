@@ -5,8 +5,8 @@
  *      Author: root
  */
 
-#ifndef EM_COMMON_H_
-#define EM_COMMON_H_
+#ifndef LIBTOBOR_IO2_INCLUDE_EM_COMMON_H_
+#define LIBTOBOR_IO2_INCLUDE_EM_COMMON_H_
 
 #include "em_types.h"
 #include <time.h>
@@ -108,4 +108,4 @@ extern endianness o32_host_order;
 #define O32_HOST_ORDER (o32_host_order.value)
 
 
-#endif /* EM_COMMON_H_ */
+#endif /* LIBTOBOR_IO2_INCLUDE_EM_COMMON_H_ */
