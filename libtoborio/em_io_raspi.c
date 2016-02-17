@@ -1109,11 +1109,11 @@ em_uint32 em_raspi_i2c_write(em_uint8 channel,em_uint16 address,const em_uint8 *
     	em_uint32 stat=arm_read(address_status);
 
     	    	if(stat & ( (0x1<<8) | (0x1 <<9)) ){
-    	    		em_log(EM_LOG_INFO,0,"i2c write stat error is %u\n",stat);
+    	    		em_log(EM_LOG_INFO,0,"i2c write status error is %u\n",stat);
     	    		return EM_ERROR_IO_WRITE;
     	    	}
     	    	if(index<data_lenght){
-    	    		em_log(EM_LOG_INFO,0,"i2c write stat index  is %u\n",index);
+    	    		em_log(EM_LOG_INFO,0,"i2c write status index  is %u\n",index);
     	    		return EM_ERROR_IO_WRITE;
     	    	}
 
@@ -1187,13 +1187,13 @@ em_uint32 em_raspi_i2c_read(em_uint8 channel,em_uint16 address,em_uint8 *data,em
     em_uint32 stat=arm_read(address_status);
 
         	    	if(stat & ( (0x1<<8) | (0x1 <<9)) ){
-        	    		em_log(EM_LOG_INFO,0,"i2c read stat error is %u\n",stat);
+        	    		em_log(EM_LOG_INFO,0,"i2c read status error is %u\n",stat);
         	    		data_lenght=index;
         	    		return EM_ERROR_IO_READ;
         	    	}
 
         	    	if(index>data_lenght){
-        	    		em_log(EM_LOG_INFO,0,"i2c read stat index  is %u\n",index);
+        	    		em_log(EM_LOG_INFO,0,"i2c read status index  is %u\n",index);
         	    		data_lenght=index;
         	    		return EM_ERROR_IO_READ;
         	    	}

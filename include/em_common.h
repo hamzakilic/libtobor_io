@@ -13,6 +13,7 @@
 #include <sys/time.h>
 
 
+
 #define EM_DEBUG
 
 #define EM_MODE_GPIO_IN 0x01
@@ -81,6 +82,7 @@
 
 #define EM_TIMEOUT_ONE_SECOND 0xF4240
 #define EM_TIMEOUT_HALF_SECOND 0x7A120
+
 
 
 
