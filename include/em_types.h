@@ -10,7 +10,7 @@
 
 typedef char em_int8;
 typedef unsigned char em_uint8;
-typedef em_int8 em_byte;
+typedef em_uint8 em_byte;
 
 typedef short em_int16;
 typedef unsigned short em_uint16;
