@@ -1,1 +1,1 @@
-Sample readme file for libtobor_io project.
+a generic IO(uart,gpio,i2c) interface and arm bcm2835 implementation for raspberrypi
