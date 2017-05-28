@@ -1,1 +1,11 @@
-a generic IO(uart,gpio,i2c) interface and arm bcm2835 implementation for raspberrypi
+a generic IO(uart,gpio,i2c) interface and arm bcm2835 implementation for raspberrypi.
+
+this is a library for linux,
+arm bcm2835 user space linux driver.
+
+compile for raspberry pi
+and use
+
+TODO: 
+samples for usage
+compiling tricks
